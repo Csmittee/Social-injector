@@ -1,0 +1,28 @@
+name: Social Poster
+
+on:
+  schedule:
+    - cron: '*/30 * * * *'  # Every 30 minutes for testing
+  workflow_dispatch:
+
+jobs:
+  post:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      - name: Run poster
+        run: python scripts/social_poster.py
+      
+      - name: Commit changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add social/posts.csv
+          git diff --cached --quiet || git commit -m "Update post status [skip ci]"
+          git push
