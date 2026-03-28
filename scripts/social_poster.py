@@ -43,29 +43,31 @@ def main():
         if row.get('status') != 'approved':
             continue
         
+        # Match your CSV column names
         try:
-            post_time = datetime.strptime(row['datetime'], '%Y-%m-%d %H:%M')
+            post_time = datetime.strptime(row['post_date'], '%Y-%m-%d %H:%M')
         except:
-            print(f"⚠️ Invalid datetime: {row.get('datetime')}")
+            print(f"⚠️ Invalid datetime: {row.get('post_date')}")
             continue
         
         if post_time > now:
             print(f"⏰ Post scheduled for {post_time} (future)")
             continue
         
-        print(f"\n📤 Posting: {row['datetime']} | {row['platform']}")
-        print(f"   Content: {row['content'][:100]}...")
+        print(f"\n📤 Posting: {row['post_date']} | {row['platform']}")
+        print(f"   Caption: {row['caption'][:100]}...")
         
         platforms = [p.strip() for p in row['platform'].split(',')]
         success = True
         
         for platform in platforms:
-            if platform == 'facebook':
-                result = post_to_facebook(row['content'], row.get('image_url'), row.get('link'))
-            elif platform == 'instagram':
-                result = post_to_instagram(row['content'], row.get('image_url'))
-            elif platform == 'line':
-                result = post_to_line(row['content'], row.get('image_url'))
+            plat = platform.lower()
+            if 'facebook' in plat or 'fb' in plat:
+                result = post_to_facebook(row['caption'], row.get('image_urls'), row.get('link'))
+            elif 'instagram' in plat or 'ig' in plat:
+                result = post_to_instagram(row['caption'], row.get('image_urls'))
+            elif 'line' in plat:
+                result = post_to_line(row['caption'], row.get('image_urls'))
             else:
                 print(f"⚠️ Unknown platform: {platform}")
                 result = False
@@ -80,7 +82,9 @@ def main():
     
     if updated:
         with open(CSV_PATH, 'w', newline='', encoding='utf-8') as f:
-            writer = csv.DictWriter(f, fieldnames=['datetime','platform','content','image_url','link','status'])
+            # Match your CSV headers exactly
+            fieldnames = ['title', 'post_date', 'platform', 'caption', 'image_urls', 'link', 'status']
+            writer = csv.DictWriter(f, fieldnames=fieldnames)
             writer.writeheader()
             writer.writerows(rows)
         print(f"\n💾 CSV updated")
