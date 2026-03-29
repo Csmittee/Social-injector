@@ -1,12 +1,13 @@
 name: Social Poster
 
 on:
-  schedule:
-    - cron: '*/30 * * * *'  # Every 30 minutes for testing
+  #schedule:
+   # - cron: '*/30 * * * *'  # Every 30 minutes for testing
   workflow_dispatch:
 
 jobs:
   post:
+    #if: false
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
