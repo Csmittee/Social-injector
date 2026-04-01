@@ -7,7 +7,7 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: #f0f2f5;
             padding: 2rem;
         }
@@ -15,8 +15,28 @@
             max-width: 1400px;
             margin: 0 auto;
         }
-        h1 { margin-bottom: 0.5rem; color: #1a1a1a; }
+        .header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 10px;
+        }
+        h1 { margin: 0; color: #1a1a1a; }
         .subtitle { color: #666; margin-bottom: 2rem; }
+        
+        .ai-button {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: 12px;
+            font-weight: bold;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
         
         .tabs {
             display: flex;
@@ -30,7 +50,6 @@
             padding: 0.5rem 1rem;
             cursor: pointer;
             border-radius: 8px;
-            transition: all 0.2s;
         }
         .tab.active {
             background: #FFD700;
@@ -49,18 +68,21 @@
             padding: 0.5rem 1rem;
             border-radius: 8px;
             cursor: pointer;
-            transition: all 0.2s;
         }
         .view-btn.active {
             background: #FFD700;
             border-color: #FFD700;
-            font-weight: 600;
         }
         
         .posts-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(450px, 1fr));
             gap: 1.5rem;
+        }
+        .posts-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
         }
         
         .post-card {
@@ -69,63 +91,30 @@
             overflow: hidden;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
-        
-        .posts-list {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
         .summary-item {
             background: white;
             border-radius: 12px;
             padding: 1rem;
             display: flex;
-            align-items: center;
             justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 1rem;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        }
-        .summary-left {
-            display: flex;
             align-items: center;
-            gap: 1rem;
             flex-wrap: wrap;
-            flex: 2;
-        }
-        .summary-title {
-            font-weight: 600;
-            max-width: 400px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        .summary-actions {
-            display: flex;
-            gap: 0.5rem;
+            gap: 1rem;
         }
         
         .post-meta-bar {
             background: #f8f8f8;
             padding: 0.75rem 1rem;
-            border-bottom: 1px solid #eee;
             display: flex;
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
-            gap: 0.5rem;
         }
         .platform-badge {
-            display: inline-block;
             background: #e0e0e0;
             padding: 0.2rem 0.6rem;
             border-radius: 20px;
             font-size: 0.7rem;
-            font-weight: 600;
-        }
-        .datetime {
-            font-size: 0.75rem;
-            color: #888;
         }
         .status {
             font-size: 0.7rem;
@@ -135,14 +124,12 @@
         .status-pending { background: #fef3c7; color: #92400e; }
         .status-approved { background: #d1fae5; color: #065f46; }
         .status-posted { background: #e0e0e0; color: #444; }
-        .status-rejected { background: #fee2e2; color: #991b1b; }
         
         .post-actions {
             padding: 1rem;
             display: flex;
             gap: 0.75rem;
             border-top: 1px solid #eee;
-            background: #fafafa;
         }
         button {
             padding: 0.5rem 1rem;
@@ -150,19 +137,39 @@
             border-radius: 8px;
             cursor: pointer;
             font-weight: 500;
-            transition: all 0.2s;
         }
-
-
-
-        
         .btn-approve { background: #10b981; color: white; }
-        .btn-approve:hover { background: #059669; }
         .btn-reject { background: #ef4444; color: white; }
-        .btn-reject:hover { background: #dc2626; }
         .btn-scheduled { background: #6b7280; color: white; cursor: default; }
         
-        .ig-preview, .fb-preview, .line-preview {
+        .message {
+            padding: 10px;
+            margin-bottom: 20px;
+            border-radius: 6px;
+            display: none;
+        }
+        .message-success { background: #d4edda; color: #155724; }
+        .message-error { background: #f8d7da; color: #721c24; }
+        .message-info { background: #d1ecf1; color: #0c5460; }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .stat-card {
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            text-align: center;
+        }
+        .stat-number {
+            font-size: 28px;
+            font-weight: bold;
+            color: #667eea;
+        }
+        .ig-preview, .fb-preview {
             padding: 1rem;
         }
         .ig-header, .fb-header {
@@ -179,45 +186,23 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-weight: bold;
-            color: white;
-        }
-        .fb-avatar { background: #1877f2; }
-        .ig-name, .fb-name { font-weight: 600; font-size: 0.9rem; }
-        .ig-time, .fb-time { font-size: 0.7rem; color: #8e8e8e; }
-        .ig-image, .fb-image {
-            width: 100%;
-            aspect-ratio: 1 / 1;
-            object-fit: cover;
-            background: #f0f0f0;
-            border-radius: 8px;
-        }
-        .ig-caption, .fb-text {
-            font-size: 0.85rem;
-            line-height: 1.4;
-            margin-top: 8px;
-        }
-        .line-preview {
-            background: #e8f5e9;
-            border-radius: 12px;
-        }
-        
-        @media (max-width: 768px) {
-            body { padding: 1rem; }
-            .posts-grid { grid-template-columns: 1fr; }
-            .summary-title { max-width: 200px; }
         }
     </style>
 </head>
 <body>
 <div class="container">
-    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; margin-bottom: 5px;">
-        <h1 style="margin: 0;">📱 Social Media Dashboard | I-Flex Thailand</h1>
-        <a href="ai-control.html" style="background: linear-gradient(135deg, #667eea, #764ba2); color: white; text-decoration: none; padding: 10px 20px; border-radius: 12px; font-weight: bold; display: inline-flex; align-items: center; gap: 8px; white-space: nowrap;">
-            🤖 AI Content Factory
-        </a>
+    <div class="header-row">
+        <h1>📱 Social Media Dashboard | I-Flex Thailand</h1>
+        <a href="ai-control.html" class="ai-button">🤖 AI Content Factory</a>
     </div>
-    <p class="subtitle">Review, approve, and schedule posts for Facebook, Instagram, and Line</p>lass="subtitle">Review, approve, and schedule posts for Facebook, Instagram, and Line</p>
+    <p class="subtitle">Review, approve, and schedule posts for Facebook, Instagram, and Line</p>
+    
+    <div class="stats" id="stats">
+        <div class="stat-card"><div class="stat-number" id="statPending">0</div><div>Pending</div></div>
+        <div class="stat-card"><div class="stat-number" id="statApproved">0</div><div>Approved</div></div>
+        <div class="stat-card"><div class="stat-number" id="statPosted">0</div><div>Posted</div></div>
+        <div class="stat-card"><div class="stat-number" id="statTotal">0</div><div>Total</div></div>
+    </div>
     
     <div class="tabs">
         <div class="tab active" data-status="pending">⏳ Pending Approval</div>
@@ -231,15 +216,16 @@
         <button id="view-summary" class="view-btn">📋 Summary View</button>
     </div>
 
+    <div id="message" class="message"></div>
     <div id="posts-container">
         <div style="text-align: center; padding: 2rem;">Loading posts...</div>
     </div>
 </div>
 
 <script>
-    // ================== CONFIG ==================
-    const REPO_OWNER = 'Csmittee';           // ← Change if your username is different
-    const REPO_NAME = 'social-injector';     // ← Change to your actual repo name
+    // ================== CONFIGURATION ==================
+    const REPO_OWNER = 'Csmittee';
+    const REPO_NAME = 'social-injector';
     const FILE_PATH = 'social/posts.csv';
     const BRANCH = 'main';
     
@@ -247,33 +233,38 @@
     let allPosts = [];
     let currentStatus = 'pending';
     let currentView = 'cards';
-
+    
     // Password protection
     const PASSWORD = 'iflex2025';
     if (!localStorage.getItem('auth')) {
         const entered = prompt('Enter dashboard password:');
         if (entered !== PASSWORD) {
-            document.body.innerHTML = '<div style="text-align:center; padding:4rem; color:red;">🔒 Access denied</div>';
+            document.body.innerHTML = '<div style="text-align:center; padding:4rem;">🔒 Access denied</div>';
             throw new Error('Access denied');
         }
         localStorage.setItem('auth', 'true');
     }
-
+    
     // ================== CSV PARSER ==================
     function parseCSV(text) {
         const lines = text.trim().split('\n');
-        const headers = lines[0].split(',').map(h => h.trim().replace(/^["']|["']$/g, ''));
+        if (lines.length < 2) return [];
+        
+        const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
         const posts = [];
         
         for (let i = 1; i < lines.length; i++) {
             if (!lines[i].trim()) continue;
+            
+            // Simple CSV parsing
             const values = [];
             let current = '';
             let inQuotes = false;
             
             for (let char of lines[i]) {
-                if (char === '"') inQuotes = !inQuotes;
-                else if (char === ',' && !inQuotes) {
+                if (char === '"') {
+                    inQuotes = !inQuotes;
+                } else if (char === ',' && !inQuotes) {
                     values.push(current);
                     current = '';
                 } else {
@@ -284,168 +275,172 @@
             
             const post = {};
             headers.forEach((header, idx) => {
-                post[header] = values[idx] ? values[idx].replace(/^["']|["']$/g, '').trim() : '';
+                post[header] = values[idx] ? values[idx].replace(/^"|"$/g, '').trim() : '';
             });
             posts.push(post);
         }
         return posts;
     }
-
-    // ================== PREVIEW RENDERERS ==================
-    function renderInstagramPreview(post) {
-        return `
-            <div class="ig-preview">
-                <div class="ig-header">
-                    <div class="ig-avatar">📌</div>
-                    <div><div class="ig-name">i-flexthailand</div><div class="ig-time">${post.post_date || ''}</div></div>
-                </div>
-                ${post.image_urls ? `<img src="${post.image_urls}" class="ig-image" alt="Preview">` : '<div class="ig-image" style="display:flex;align-items:center;justify-content:center;background:#f0f0f0;">📷 No image</div>'}
-                <div class="ig-caption"><strong>i-flexthailand</strong> ${post.caption.substring(0, 180)}${post.caption.length > 180 ? '...' : ''}</div>
-            </div>
-        `;
-    }
-
-    function renderFacebookPreview(post) {
-        return `
-            <div class="fb-preview">
-                <div class="fb-header">
-                    <div class="fb-avatar">📌</div>
-                    <div><div class="fb-name">I-Flex Thailand</div><div class="fb-time">${post.post_date || ''}</div></div>
-                </div>
-                ${post.image_urls ? `<img src="${post.image_urls}" class="fb-image" alt="Preview">` : ''}
-                <div class="fb-text">${post.caption}</div>
-            </div>
-        `;
-    }
-
-    function getPlatformPreview(post) {
-        const platform = (post.platform || '').toLowerCase();
-        if (platform.includes('instagram') || platform.includes('ig')) return renderInstagramPreview(post);
-        if (platform.includes('facebook') || platform.includes('fb')) return renderFacebookPreview(post);
-        return `<div style="padding:1rem;">${post.caption}</div>`;
-    }
-
-    // ================== FETCH CSV ==================
-    async function fetchCSV() {
+    
+    // ================== LOAD POSTS ==================
+    async function loadPosts() {
         try {
-            const url = `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/${BRANCH}/${FILE_PATH}`;
+            const url = `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/${BRANCH}/${FILE_PATH}?t=${Date.now()}`;
             const response = await fetch(url);
-            const text = await response.text();
-            allPosts = parseCSV(text);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+            
+            const csvText = await response.text();
+            allPosts = parseCSV(csvText);
+            updateStats();
             renderPosts();
-        } catch (e) {
-            console.error(e);
-            document.getElementById('posts-container').innerHTML = `<div style="text-align:center; padding:3rem; color:red;">❌ Failed to load posts.<br>Please check repo name and file path.</div>`;
+        } catch (error) {
+            console.error('Error:', error);
+            document.getElementById('posts-container').innerHTML = `<div style="text-align:center; padding:2rem; color:red;">❌ Failed to load posts: ${error.message}</div>`;
         }
     }
-
+    
+    function updateStats() {
+        const pending = allPosts.filter(p => p.status === 'pending').length;
+        const approved = allPosts.filter(p => p.status === 'approved').length;
+        const posted = allPosts.filter(p => p.status === 'posted').length;
+        
+        document.getElementById('statPending').textContent = pending;
+        document.getElementById('statApproved').textContent = approved;
+        document.getElementById('statPosted').textContent = posted;
+        document.getElementById('statTotal').textContent = allPosts.length;
+    }
+    
+    function showMessage(msg, type) {
+        const msgDiv = document.getElementById('message');
+        msgDiv.textContent = msg;
+        msgDiv.className = `message message-${type}`;
+        msgDiv.style.display = 'block';
+        setTimeout(() => {
+            msgDiv.style.display = 'none';
+        }, 3000);
+    }
+    
     // ================== RENDER POSTS ==================
     function renderPosts() {
         const filtered = allPosts.filter(p => p.status === currentStatus);
         const container = document.getElementById('posts-container');
-
+        
         if (filtered.length === 0) {
-            container.innerHTML = '<div style="text-align:center; padding:3rem;">No posts in this status</div>';
+            container.innerHTML = '<div style="text-align:center; padding:2rem;">No posts in this status</div>';
             return;
         }
-
+        
         if (currentView === 'cards') {
-            container.innerHTML = `<div class="posts-grid">${filtered.map((post, i) => `
+            container.innerHTML = `<div class="posts-grid">${filtered.map((post, idx) => {
+                const globalIdx = allPosts.findIndex(p => p.title === post.title && p.post_date === post.post_date);
+                return `
                 <div class="post-card">
                     <div class="post-meta-bar">
-                        <div>
-                            <span class="platform-badge">${post.platform || 'Unknown'}</span>
-                            <span class="datetime"> 📅 ${post.post_date || 'No date'}</span>
-                        </div>
+                        <span class="platform-badge">${post.platform || 'Unknown'}</span>
+                        <span>📅 ${post.post_date || 'No date'}</span>
                         <span class="status status-${post.status}">${post.status}</span>
                     </div>
-                    <div style="padding:1rem;">${getPlatformPreview(post)}</div>
+                    <div style="padding:1rem;">
+                        <strong>${post.title || 'Untitled'}</strong>
+                        <p style="margin-top:10px; color:#666;">${(post.caption || '').substring(0, 200)}${(post.caption || '').length > 200 ? '...' : ''}</p>
+                    </div>
                     <div class="post-actions">
                         ${post.status === 'pending' ? `
-                            <button class="btn-approve" onclick="updateStatus(${allPosts.indexOf(post)}, 'approved')">✅ Approve</button>
-                            <button class="btn-reject" onclick="updateStatus(${allPosts.indexOf(post)}, 'rejected')">❌ Reject</button>
+                            <button class="btn-approve" onclick="updateStatus('${post.title}', '${post.post_date}', 'approved')">✅ Approve</button>
+                            <button class="btn-reject" onclick="updateStatus('${post.title}', '${post.post_date}', 'rejected')">❌ Reject</button>
                         ` : ''}
-                        ${post.status === 'approved' ? `<button class="btn-scheduled">⏰ Scheduled • ${post.post_date}</button>` : ''}
-                        ${post.status === 'posted' ? `<button class="btn-scheduled">📌 Posted</button>` : ''}
-                        ${post.status === 'rejected' ? `<button class="btn-approve" onclick="updateStatus(${allPosts.indexOf(post)}, 'pending')">🔄 Restore to Pending</button>` : ''}
+                        ${post.status === 'approved' ? `<button class="btn-scheduled">⏰ Scheduled for ${post.post_date}</button>` : ''}
+                        ${post.status === 'posted' ? `<button class="btn-scheduled">✅ Posted</button>` : ''}
                     </div>
-                </div>
-            `).join('')}</div>`;
+                </div>`;
+            }).join('')}</div>`;
         } else {
-            container.innerHTML = `<div class="posts-list">${filtered.map((post) => `
+            container.innerHTML = `<div class="posts-list">${filtered.map(post => `
                 <div class="summary-item">
-                    <div class="summary-left">
-                        <span class="platform-badge">${post.platform}</span>
-                        <span class="datetime">📅 ${post.post_date}</span>
-                        <span class="summary-title">${post.caption.substring(0, 70)}${post.caption.length > 70 ? '...' : ''}</span>
-                        <span class="status status-${post.status}">${post.status}</span>
-                    </div>
-                    <div class="summary-actions">
+                    <div><span class="platform-badge">${post.platform}</span> 📅 ${post.post_date}</div>
+                    <div style="flex:1; margin:0 1rem;">${(post.title || '').substring(0, 50)}</div>
+                    <div class="status status-${post.status}">${post.status}</div>
+                    <div>
                         ${post.status === 'pending' ? `
-                            <button class="btn-approve" onclick="updateStatus(${allPosts.indexOf(post)}, 'approved')">✅ Approve</button>
-                            <button class="btn-reject" onclick="updateStatus(${allPosts.indexOf(post)}, 'rejected')">❌ Reject</button>
+                            <button class="btn-approve" onclick="updateStatus('${post.title}', '${post.post_date}', 'approved')">Approve</button>
+                            <button class="btn-reject" onclick="updateStatus('${post.title}', '${post.post_date}', 'rejected')">Reject</button>
                         ` : ''}
-                        ${post.status === 'rejected' ? `<button class="btn-approve" onclick="updateStatus(${allPosts.indexOf(post)}, 'pending')">🔄 Restore</button>` : ''}
                     </div>
                 </div>
             `).join('')}</div>`;
         }
     }
-
-    // ================== UPDATE STATUS (REAL GITHUB SAVE) ==================
-    async function updateStatus(index, newStatus) {
+    
+    // ================== UPDATE STATUS ==================
+    async function updateStatus(title, postDate, newStatus) {
         if (!githubToken) {
-            githubToken = prompt('Enter your GitHub Personal Access Token (with "repo" scope):');
+            githubToken = prompt('Enter your GitHub token (repo scope):');
             if (!githubToken) return;
             localStorage.setItem('githubToken', githubToken);
         }
-
-        allPosts[index].status = newStatus;
+        
+        // Find the post
+        const postIndex = allPosts.findIndex(p => p.title === title && p.post_date === postDate);
+        if (postIndex === -1) return;
+        
+        const originalStatus = allPosts[postIndex].status;
+        allPosts[postIndex].status = newStatus;
         renderPosts();
-
+        updateStats();
+        
         try {
-            // Get current SHA
-            const shaRes = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${FILE_PATH}`, {
+            // Get current file with SHA
+            const fileUrl = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${FILE_PATH}`;
+            const shaRes = await fetch(fileUrl, {
                 headers: { 'Authorization': `token ${githubToken}` }
             });
             const shaData = await shaRes.json();
             const sha = shaData.sha;
-
-            // Build new CSV content
+            
+            // Build new CSV
             let csvContent = 'title,post_date,platform,caption,image_urls,link,status\n';
             allPosts.forEach(p => {
-                csvContent += `"${p.title || ''}",${p.post_date || ''},"${p.platform || ''}","${(p.caption || '').replace(/"/g, '""')}","${p.image_urls || ''}","${p.link || ''}",${p.status}\n`;
+                const title = (p.title || '').replace(/"/g, '""');
+                const caption = (p.caption || '').replace(/"/g, '""');
+                csvContent += `"${title}",${p.post_date},"${p.platform}","${caption}","${p.image_urls || ''}","${p.link || ''}",${p.status}\n`;
             });
-
+            
             const contentBase64 = btoa(unescape(encodeURIComponent(csvContent)));
-
-            const response = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${FILE_PATH}`, {
+            
+            const response = await fetch(fileUrl, {
                 method: 'PUT',
                 headers: {
                     'Authorization': `token ${githubToken}`,
-                    'Accept': 'application/vnd.github.v3+json'
+                    'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    message: `Update post: ${allPosts[index].title || 'Untitled'} → ${newStatus}`,
+                    message: `Update: ${title} → ${newStatus}`,
                     content: contentBase64,
                     sha: sha,
                     branch: BRANCH
                 })
             });
-
+            
             if (response.ok) {
-                alert(`✅ Successfully updated to "${newStatus}" and saved to GitHub!`);
+                showMessage(`✅ Updated to "${newStatus}"`, 'success');
+                await loadPosts(); // Reload fresh data
             } else {
                 const err = await response.json();
-                alert('❌ Failed to save: ' + (err.message || response.statusText));
+                throw new Error(err.message);
             }
-        } catch (e) {
-            console.error(e);
-            alert('Error connecting to GitHub: ' + e.message + '\n\nMake sure your token has "repo" permission.');
+        } catch (error) {
+            showMessage(`❌ Failed: ${error.message}`, 'error');
+            // Revert
+            allPosts[postIndex].status = originalStatus;
+            renderPosts();
+            updateStats();
         }
     }
-
-    // ================== TAB & VIEW SWITCH ==================
+    
+    // ================== TAB & VIEW CONTROLS ==================
     document.querySelectorAll('.tab').forEach(tab => {
         tab.addEventListener('click', () => {
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -454,23 +449,24 @@
             renderPosts();
         });
     });
-
+    
     document.getElementById('view-cards').addEventListener('click', () => {
         currentView = 'cards';
         document.getElementById('view-cards').classList.add('active');
         document.getElementById('view-summary').classList.remove('active');
         renderPosts();
     });
-
+    
     document.getElementById('view-summary').addEventListener('click', () => {
         currentView = 'summary';
         document.getElementById('view-summary').classList.add('active');
         document.getElementById('view-cards').classList.remove('active');
         renderPosts();
     });
-
+    
     // ================== START ==================
-    fetchCSV();
+    loadPosts();
+    setInterval(loadPosts, 30000);
 </script>
 </body>
 </html>
