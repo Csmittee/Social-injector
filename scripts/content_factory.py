@@ -1,154 +1,199 @@
 #!/usr/bin/env python3
 """
-AI Content Factory - Real CSV Writer with Long Captions
+AI Content Factory - With Auto-Generated Links
 """
 
 import os
 import csv
-import requests
-import json
+import random
 from datetime import datetime, timedelta
 from pathlib import Path
 
-class AIContentGenerator:
+class SmartContentFactory:
     def __init__(self):
-        self.github_token = os.getenv('GITHUB_TOKEN')
-        
-    def generate_ideas(self, theme, count=5):
-        """Generate rich, detailed post ideas"""
-        
-        prompt = f"""You are a professional social media strategist. Create {count} engaging social media posts for a brand about "{theme}".
-
-For EACH post, provide:
-- title: Catchy headline (max 8 words)
-- hook: First sentence that grabs attention (max 15 words)
-- core_message: Main content - make it VALUABLE, detailed, and engaging (80-120 words). Include specific tips, relatable stories, or actionable advice.
-- visual_description: What image/video should accompany this post
-
-Make the content feel authentic, conversational, and valuable. Return as JSON array.
-
-Example format:
-[{{"title": "Start Your Day Right", "hook": "Morning routines that change lives", "core_message": "The first 20 minutes of your morning set the tone for everything. Here's what successful people do...", "visual_description": "Sunrise workout, coffee, journaling setup"}}]"""
-
-        try:
-            response = requests.post(
-                "https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.1",
-                headers={"Authorization": f"Bearer {self.github_token}"},
-                json={"inputs": prompt, "parameters": {"max_new_tokens": 2000}}
-            )
-            
-            if response.status_code == 200:
-                result = response.json()
-                text = result[0]['generated_text']
-                # Extract JSON
-                start = text.find('[')
-                end = text.rfind(']') + 1
-                if start != -1 and end != 0:
-                    return json.loads(text[start:end])
-        except:
-            pass
-        
-        # Fallback ideas
-        return [
-            {"title": f"{theme.title()} - Post 1", "hook": "Start your journey today", 
-             "core_message": f"Here's your daily dose of {theme} inspiration. Remember that every small step counts. Consistency beats intensity. Keep showing up, trust the process, and celebrate your progress along the way. You've got this! 💪", 
-             "visual_description": "Motivational scene"},
-            {"title": f"{theme.title()} - Post 2", "hook": "Small changes, big results", 
-             "core_message": f"When it comes to {theme}, it's the little things that add up. A 10-minute practice daily becomes 70 minutes a week. That's over 60 hours a year! Start small, stay consistent, and watch your progress compound.", 
-             "visual_description": "Progress visualization"}
-        ] * (count // 2)
-    
-    def generate_captions(self, idea, platforms):
-        """Generate platform-specific captions"""
-        captions = {}
-        
-        for platform in platforms:
-            platform = platform.lower()
-            if platform == 'instagram':
-                captions[platform] = f"""✨ {idea['hook']}
-
-{idea['core_message']}
-
-💡 Pro tip: Save this for later!
-
-👇 Drop a comment if this resonates with you!
-
-#I-FlexThailand #{idea['title'].replace(' ', '')} #FitnessJourney #ThaiFitness #Motivation #Workout #HealthyLifestyle #FitFam #ProgressNotPerfection"""
-            
-            elif platform == 'facebook':
-                captions[platform] = f"""{idea['hook']} 💪
-
-{idea['core_message']}
-
-What's your biggest takeaway from this? Share in the comments! 👇
-
-#I-FlexThailand #FitnessMotivation"""
-            
-            elif platform == 'line':
-                captions[platform] = f"""{idea['hook']}
-
-{idea['core_message'][:150]}...
-
-👉 Message us to learn more!"""
-        
-        return captions
-
-class ContentFactory:
-    def __init__(self):
-        self.generator = AIContentGenerator()
         self.csv_path = Path('social/posts.csv')
-        
-        # Read parameters
         self.theme = os.getenv('THEME', 'fitness motivation')
         self.count = int(os.getenv('COUNT', '5'))
-        self.platforms = [p.strip() for p in os.getenv('PLATFORMS', 'facebook,instagram').split(',')]
         
+        # Define link templates based on theme
+        self.link_templates = {
+            'fitness': [
+                "https://i-flexthailand.com/equipment",
+                "https://i-flexthailand.com/workouts",
+                "https://i-flexthailand.com/personal-training",
+                "https://i-flexthailand.com/shop",
+                "https://i-flexthailand.com/free-guide"
+            ],
+            'weight loss': [
+                "https://i-flexthailand.com/weight-loss",
+                "https://i-flexthailand.com/nutrition-plan",
+                "https://i-flexthailand.com/fitness-assessment",
+                "https://i-flexthailand.com/meal-planner"
+            ],
+            'nutrition': [
+                "https://i-flexthailand.com/healthy-eating",
+                "https://i-flexthailand.com/recipes",
+                "https://i-flexthailand.com/nutrition-guide"
+            ],
+            'motivation': [
+                "https://i-flexthailand.com/success-stories",
+                "https://i-flexthailand.com/free-resources",
+                "https://i-flexthailand.com/community"
+            ]
+        }
+        
+    def get_link_for_theme(self, theme, post_title):
+        """Generate appropriate link based on theme and post title"""
+        
+        theme_lower = theme.lower()
+        
+        # Match theme to link category
+        link_category = 'fitness'  # default
+        for key in self.link_templates:
+            if key in theme_lower:
+                link_category = key
+                break
+        
+        # Get links for this category
+        links = self.link_templates.get(link_category, self.link_templates['fitness'])
+        
+        # Add CTA-based links
+        call_to_actions = [
+            "https://i-flexthailand.com/book-consultation",
+            "https://i-flexthailand.com/free-trial",
+            "https://i-flexthailand.com/contact",
+            "https://i-flexthailand.com/special-offer"
+        ]
+        
+        # Choose link based on post content
+        if any(word in post_title.lower() for word in ['start', 'begin', 'new']):
+            return "https://i-flexthailand.com/new-client-special"
+        elif any(word in post_title.lower() for word in ['guide', 'tips', 'how to']):
+            return "https://i-flexthailand.com/free-guide"
+        elif any(word in post_title.lower() for word in ['success', 'story', 'transform']):
+            return "https://i-flexthailand.com/success-stories"
+        elif random.random() > 0.6:
+            return random.choice(links)
+        else:
+            return random.choice(call_to_actions)
+    
     def run(self):
         print(f"\n{'='*50}")
-        print(f"🤖 AI Content Factory")
+        print(f"🏭 AI Content Factory (with Links)")
         print(f"   Theme: {self.theme}")
         print(f"   Posts: {self.count}")
-        print(f"   Platforms: {', '.join(self.platforms)}")
         print(f"{'='*50}\n")
         
-        # Generate ideas
-        print(f"📝 Generating {self.count} ideas...")
-        ideas = self.generator.generate_ideas(self.theme, self.count)
-        
-        # Generate posts
+        # Create posts
         new_posts = []
         start_date = datetime.now().replace(hour=9, minute=0)
         
-        for i, idea in enumerate(ideas[:self.count]):
-            print(f"\n✍️ Post {i+1}: {idea.get('title', 'Untitled')}")
+        # Sample post ideas based on theme
+        post_templates = [
+            {
+                'title': f"💪 Start Your {self.theme.title()} Journey",
+                'caption': f"""Ready to transform your life? {self.theme.title()} is the first step toward a healthier, happier you! 🌟
+
+Here's what you'll discover:
+✓ Simple daily habits that stick
+✓ Expert tips from certified trainers
+✓ Real results from real people
+
+The journey of a thousand miles begins with a single step. Take yours today! 💫
+
+👇 Click the link below to get started!
+
+#{self.theme.replace(' ', '')} #I-FlexThailand #FitnessJourney #ThaiFitness #GetStarted #NewYou"""
+            },
+            {
+                'title': f"✨ Daily {self.theme.title()} Motivation",
+                'caption': f"""Need a boost today? Here's your daily dose of {self.theme.title()} inspiration! 🔥
+
+Remember: Every expert was once a beginner. Every champion started as a contender. Your journey is unique, and every small step counts.
+
+💡 Pro Tip: Consistency beats intensity. Show up, do the work, trust the process.
+
+What's your goal this week? Drop it below! 👇
+
+#{self.theme.replace(' ', '')} #Motivation #I-FlexThailand #FitnessMindset #DailyInspiration"""
+            },
+            {
+                'title': f"🏆 {self.theme.title()} Success Tips",
+                'caption': f"""Want faster results? Here are 3 proven {self.theme.title()} strategies: 🔑
+
+1. Set specific, measurable goals
+2. Track your progress daily
+3. Celebrate small wins
+
+These simple shifts helped our clients achieve amazing transformations. They can work for you too!
+
+👉 Click the link for your free guide!
+
+#{self.theme.replace(' ', '')} #SuccessTips #I-FlexThailand #FitnessHacks #Results"""
+            },
+            {
+                'title': f"🌟 {self.theme.title()} Made Simple",
+                'caption': f"""Think {self.theme.title()} is complicated? Think again! 💫
+
+We've broken it down into 3 simple steps that anyone can follow:
+1️⃣ Start small
+2️⃣ Stay consistent  
+3️⃣ Stack your wins
+
+No complicated equipment. No overwhelming routines. Just real results that last.
+
+Ready to simplify your journey? Tap the link! 👇
+
+#{self.theme.replace(' ', '')} #SimpleFitness #I-FlexThailand #EasyWorkouts #HealthyHabits"""
+            },
+            {
+                'title': f"🔥 {self.theme.title()} Challenge",
+                'caption': f"""Ready for a challenge? Join our 7-day {self.theme.title()} challenge! 🎯
+
+What you'll get:
+✓ Daily actionable tasks
+✓ Support from our community
+✓ Progress tracking tools
+✓ Prizes for top performers
+
+The best time to start was yesterday. The next best time is NOW!
+
+👇 Sign up through the link below!
+
+#{self.theme.replace(' ', '')} #FitnessChallenge #I-FlexThailand #JoinNow #7DayChallenge"""
+            }
+        ]
+        
+        for i in range(self.count):
+            # Rotate through templates
+            template = post_templates[i % len(post_templates)]
+            post_time = start_date + timedelta(hours=i*3, days=i//3)
             
-            captions = self.generator.generate_captions(idea, self.platforms)
-            
-            # Use Instagram caption as main (it's longest)
-            main_caption = captions.get('instagram', captions.get('facebook', idea['core_message']))
-            
-            post_time = start_date + timedelta(hours=i*3)
+            # Generate link for this post
+            post_link = self.get_link_for_theme(self.theme, template['title'])
             
             post = {
-                'title': idea.get('title', f"{self.theme} Post {i+1}"),
+                'title': template['title'],
                 'post_date': post_time.strftime('%Y-%m-%d %H:%M'),
-                'platform': ','.join([p.upper()[:2] for p in self.platforms]),
-                'caption': main_caption,
+                'platform': 'FB,IG',
+                'caption': template['caption'],
                 'image_urls': '',
-                'link': '',
+                'link': post_link,
                 'status': 'pending'
             }
             
             new_posts.append(post)
-            print(f"   ✅ Caption: {len(main_caption)} chars")
+            print(f"✅ Created: {post['title']}")
+            print(f"   📅 Date: {post['post_date']}")
+            print(f"   🔗 Link: {post['link']}")
+            print()
         
         # Save to CSV
         self.save_to_csv(new_posts)
         
         print(f"\n{'='*50}")
-        print(f"🎉 SUCCESS! Generated {len(new_posts)} posts")
+        print(f"🎉 SUCCESS! Generated {len(new_posts)} posts with links")
         print(f"📁 Saved to: {self.csv_path}")
-        print(f"📊 Total posts now: {self.get_post_count()}")
         print(f"{'='*50}")
         
     def save_to_csv(self, new_posts):
@@ -159,6 +204,7 @@ class ContentFactory:
             with open(self.csv_path, 'r', encoding='utf-8-sig') as f:
                 reader = csv.DictReader(f)
                 existing = list(reader)
+            print(f"📖 Loaded {len(existing)} existing posts")
         
         all_posts = existing + new_posts
         
@@ -166,13 +212,9 @@ class ContentFactory:
             writer = csv.DictWriter(f, fieldnames=fieldnames)
             writer.writeheader()
             writer.writerows(all_posts)
-    
-    def get_post_count(self):
-        if not self.csv_path.exists():
-            return 0
-        with open(self.csv_path, 'r', encoding='utf-8-sig') as f:
-            return sum(1 for _ in f) - 1
+        
+        print(f"💾 Saved {len(new_posts)} new posts to CSV")
 
 if __name__ == "__main__":
-    factory = ContentFactory()
+    factory = SmartContentFactory()
     factory.run()
