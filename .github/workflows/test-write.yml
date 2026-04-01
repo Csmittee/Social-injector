@@ -1,0 +1,34 @@
+name: Test Write to CSV
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Write test post to CSV
+        run: |
+          # Create test CSV if doesn't exist
+          if [ ! -f social/posts.csv ]; then
+            echo "title,post_date,platform,caption,image_urls,link,status" > social/posts.csv
+          fi
+          
+          # Add a test post
+          echo "\"Test Post $(date)\",$(date '+%Y-%m-%d %H:%M'),\"FB,IG\",\"This is a test post from GitHub Action\",\"\",\"\",pending" >> social/posts.csv
+          
+          echo "✅ Test post added to CSV"
+          cat social/posts.csv
+      
+      - name: Commit changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add social/posts.csv
+          git diff --cached --quiet || git commit -m "Test write [skip ci]"
+          git push
