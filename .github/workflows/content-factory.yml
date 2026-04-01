@@ -1,0 +1,49 @@
+name: Content Factory - Daily Automation
+
+on:
+  schedule:
+    - cron: '0 2 * * *'  # Runs daily at 2 AM
+  workflow_dispatch:      # Manual trigger for testing
+
+jobs:
+  create-content:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      - name: Install dependencies
+        run: |
+          pip install openai requests pandas pyairtable cloudinary python-dotenv
+      
+      - name: Run Content Factory
+        env:
+          # GitHub token for AI models (free)
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Cloudinary for image hosting
+          CLOUDINARY_CLOUD_NAME: ${{ secrets.CLOUDINARY_CLOUD_NAME }}
+          CLOUDINARY_API_KEY: ${{ secrets.CLOUDINARY_API_KEY }}
+          CLOUDINARY_API_SECRET: ${{ secrets.CLOUDINARY_API_SECRET }}
+          # Airtable (optional - can use CSV first)
+          AIRTABLE_TOKEN: ${{ secrets.AIRTABLE_TOKEN }}
+          AIRTABLE_BASE_ID: ${{ secrets.AIRTABLE_BASE_ID }}
+          # Leonardo AI for images (optional initially)
+          LEONARDO_API_KEY: ${{ secrets.LEONARDO_API_KEY }}
+        run: |
+          python scripts/content_factory.py
+      
+      - name: Commit generated content
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add social/posts.csv
+          git add social/ai_generated/
+          git diff --cached --quiet || git commit -m "Auto-generate daily content [skip ci]"
+          git push
