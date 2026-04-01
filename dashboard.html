@@ -211,8 +211,13 @@
 </head>
 <body>
 <div class="container">
-    <h1>📱 Social Media Dashboard | I-Flex Thailand</h1>
-    <p class="subtitle">Review, approve, and schedule posts for Facebook, Instagram, and Line</p>
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; margin-bottom: 5px;">
+        <h1 style="margin: 0;">📱 Social Media Dashboard | I-Flex Thailand</h1>
+        <a href="ai-control.html" style="background: linear-gradient(135deg, #667eea, #764ba2); color: white; text-decoration: none; padding: 10px 20px; border-radius: 12px; font-weight: bold; display: inline-flex; align-items: center; gap: 8px; white-space: nowrap;">
+            🤖 AI Content Factory
+        </a>
+    </div>
+    <p class="subtitle">Review, approve, and schedule posts for Facebook, Instagram, and Line</p>lass="subtitle">Review, approve, and schedule posts for Facebook, Instagram, and Line</p>
     
     <div class="tabs">
         <div class="tab active" data-status="pending">⏳ Pending Approval</div>
@@ -226,11 +231,6 @@
         <button id="view-summary" class="view-btn">📋 Summary View</button>
     </div>
 
-    <button onclick="location.href='ai-control.html'" style="background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; padding: 12px 24px; border-radius: 12px; font-weight: bold; cursor: pointer;">
-        🤖 AI Content Factory
-    </button>
-
-    
     <div id="posts-container">
         <div style="text-align: center; padding: 2rem;">Loading posts...</div>
     </div>
