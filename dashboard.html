@@ -38,6 +38,41 @@
             gap: 8px;
         }
         
+        .live-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #10b981;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+        }
+        
+        .live-dot {
+            width: 8px;
+            height: 8px;
+            background: white;
+            border-radius: 50%;
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(0.8); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+        
+        .refresh-btn {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
         .tabs {
             display: flex;
             gap: 0.5rem;
@@ -169,31 +204,28 @@
             font-weight: bold;
             color: #667eea;
         }
-        .ig-preview, .fb-preview {
-            padding: 1rem;
-        }
-        .ig-header, .fb-header {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 12px;
-        }
-        .ig-avatar, .fb-avatar {
-            width: 40px;
-            height: 40px;
-            background: linear-gradient(135deg, #FFD700, #FFA500);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+        .link-url {
+            font-size: 11px;
+            color: #3b82f6;
+            word-break: break-all;
+            margin-top: 8px;
         }
     </style>
 </head>
 <body>
 <div class="container">
     <div class="header-row">
-        <h1>📱 Social Media Dashboard | I-Flex Thailand</h1>
-        <a href="ai-control.html" class="ai-button">🤖 AI Content Factory</a>
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <h1>📱 Social Media Dashboard | I-Flex Thailand</h1>
+            <div class="live-indicator">
+                <span class="live-dot"></span>
+                LIVE
+            </div>
+        </div>
+        <div style="display: flex; gap: 10px;">
+            <button class="refresh-btn" onclick="manualRefresh()">🔄 Refresh</button>
+            <a href="ai-control.html" class="ai-button">🤖 AI Factory</a>
+        </div>
     </div>
     <p class="subtitle">Review, approve, and schedule posts for Facebook, Instagram, and Line</p>
     
@@ -223,7 +255,7 @@
 </div>
 
 <script>
-    // ================== CONFIGURATION ==================
+    // CONFIGURATION
     const REPO_OWNER = 'Csmittee';
     const REPO_NAME = 'social-injector';
     const FILE_PATH = 'social/posts.csv';
@@ -233,8 +265,9 @@
     let allPosts = [];
     let currentStatus = 'pending';
     let currentView = 'cards';
+    let autoRefreshTimer = null;
     
-    // Password protection
+    // Password
     const PASSWORD = 'iflex2025';
     if (!localStorage.getItem('auth')) {
         const entered = prompt('Enter dashboard password:');
@@ -243,74 +276,6 @@
             throw new Error('Access denied');
         }
         localStorage.setItem('auth', 'true');
-    }
-    
-    // ================== CSV PARSER ==================
-    function parseCSV(text) {
-        const lines = text.trim().split('\n');
-        if (lines.length < 2) return [];
-        
-        const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
-        const posts = [];
-        
-        for (let i = 1; i < lines.length; i++) {
-            if (!lines[i].trim()) continue;
-            
-            // Simple CSV parsing
-            const values = [];
-            let current = '';
-            let inQuotes = false;
-            
-            for (let char of lines[i]) {
-                if (char === '"') {
-                    inQuotes = !inQuotes;
-                } else if (char === ',' && !inQuotes) {
-                    values.push(current);
-                    current = '';
-                } else {
-                    current += char;
-                }
-            }
-            values.push(current);
-            
-            const post = {};
-            headers.forEach((header, idx) => {
-                post[header] = values[idx] ? values[idx].replace(/^"|"$/g, '').trim() : '';
-            });
-            posts.push(post);
-        }
-        return posts;
-    }
-    
-    // ================== LOAD POSTS ==================
-    async function loadPosts() {
-        try {
-            const url = `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/${BRANCH}/${FILE_PATH}?t=${Date.now()}`;
-            const response = await fetch(url);
-            
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}`);
-            }
-            
-            const csvText = await response.text();
-            allPosts = parseCSV(csvText);
-            updateStats();
-            renderPosts();
-        } catch (error) {
-            console.error('Error:', error);
-            document.getElementById('posts-container').innerHTML = `<div style="text-align:center; padding:2rem; color:red;">❌ Failed to load posts: ${error.message}</div>`;
-        }
-    }
-    
-    function updateStats() {
-        const pending = allPosts.filter(p => p.status === 'pending').length;
-        const approved = allPosts.filter(p => p.status === 'approved').length;
-        const posted = allPosts.filter(p => p.status === 'posted').length;
-        
-        document.getElementById('statPending').textContent = pending;
-        document.getElementById('statApproved').textContent = approved;
-        document.getElementById('statPosted').textContent = posted;
-        document.getElementById('statTotal').textContent = allPosts.length;
     }
     
     function showMessage(msg, type) {
@@ -323,16 +288,52 @@
         }, 3000);
     }
     
-    // ================== RENDER POSTS ==================
+    function parseCSV(text) {
+        const lines = text.trim().split('\n');
+        if (lines.length < 2) return [];
+        const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
+        const posts = [];
+        for (let i = 1; i < lines.length; i++) {
+            if (!lines[i].trim()) continue;
+            const values = [];
+            let current = '';
+            let inQuotes = false;
+            for (let char of lines[i]) {
+                if (char === '"') inQuotes = !inQuotes;
+                else if (char === ',' && !inQuotes) {
+                    values.push(current);
+                    current = '';
+                } else {
+                    current += char;
+                }
+            }
+            values.push(current);
+            const post = {};
+            headers.forEach((header, idx) => {
+                post[header] = values[idx] ? values[idx].replace(/^"|"$/g, '').trim() : '';
+            });
+            posts.push(post);
+        }
+        return posts;
+    }
+    
+    function updateStats() {
+        const pending = allPosts.filter(p => p.status === 'pending').length;
+        const approved = allPosts.filter(p => p.status === 'approved').length;
+        const posted = allPosts.filter(p => p.status === 'posted').length;
+        document.getElementById('statPending').textContent = pending;
+        document.getElementById('statApproved').textContent = approved;
+        document.getElementById('statPosted').textContent = posted;
+        document.getElementById('statTotal').textContent = allPosts.length;
+    }
+    
     function renderPosts() {
         const filtered = allPosts.filter(p => p.status === currentStatus);
         const container = document.getElementById('posts-container');
-        
         if (filtered.length === 0) {
             container.innerHTML = '<div style="text-align:center; padding:2rem;">No posts in this status</div>';
             return;
         }
-        
         if (currentView === 'cards') {
             container.innerHTML = `<div class="posts-grid">${filtered.map((post, idx) => {
                 const globalIdx = allPosts.findIndex(p => p.title === post.title && p.post_date === post.post_date);
@@ -346,11 +347,12 @@
                     <div style="padding:1rem;">
                         <strong>${post.title || 'Untitled'}</strong>
                         <p style="margin-top:10px; color:#666;">${(post.caption || '').substring(0, 200)}${(post.caption || '').length > 200 ? '...' : ''}</p>
+                        ${post.link ? `<div class="link-url">🔗 ${post.link}</div>` : ''}
                     </div>
                     <div class="post-actions">
                         ${post.status === 'pending' ? `
-                            <button class="btn-approve" onclick="updateStatus('${post.title}', '${post.post_date}', 'approved')">✅ Approve</button>
-                            <button class="btn-reject" onclick="updateStatus('${post.title}', '${post.post_date}', 'rejected')">❌ Reject</button>
+                            <button class="btn-approve" onclick="updateStatus('${escapeHtml(post.title)}', '${escapeHtml(post.post_date)}', 'approved')">✅ Approve</button>
+                            <button class="btn-reject" onclick="updateStatus('${escapeHtml(post.title)}', '${escapeHtml(post.post_date)}', 'rejected')">❌ Reject</button>
                         ` : ''}
                         ${post.status === 'approved' ? `<button class="btn-scheduled">⏰ Scheduled for ${post.post_date}</button>` : ''}
                         ${post.status === 'posted' ? `<button class="btn-scheduled">✅ Posted</button>` : ''}
@@ -365,8 +367,8 @@
                     <div class="status status-${post.status}">${post.status}</div>
                     <div>
                         ${post.status === 'pending' ? `
-                            <button class="btn-approve" onclick="updateStatus('${post.title}', '${post.post_date}', 'approved')">Approve</button>
-                            <button class="btn-reject" onclick="updateStatus('${post.title}', '${post.post_date}', 'rejected')">Reject</button>
+                            <button class="btn-approve" onclick="updateStatus('${escapeHtml(post.title)}', '${escapeHtml(post.post_date)}', 'approved')">Approve</button>
+                            <button class="btn-reject" onclick="updateStatus('${escapeHtml(post.title)}', '${escapeHtml(post.post_date)}', 'rejected')">Reject</button>
                         ` : ''}
                     </div>
                 </div>
@@ -374,15 +376,38 @@
         }
     }
     
-    // ================== UPDATE STATUS ==================
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+    }
+    
+    async function loadPosts() {
+        try {
+            const url = `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/${BRANCH}/${FILE_PATH}?t=${Date.now()}`;
+            const response = await fetch(url);
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            const csvText = await response.text();
+            const newPosts = parseCSV(csvText);
+            const oldCount = allPosts.length;
+            allPosts = newPosts;
+            updateStats();
+            renderPosts();
+            if (newPosts.length > oldCount) {
+                showMessage(`✨ ${newPosts.length - oldCount} new posts added!`, 'success');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            document.getElementById('posts-container').innerHTML = `<div style="text-align:center; padding:2rem; color:red;">❌ Failed to load posts</div>`;
+        }
+    }
+    
     async function updateStatus(title, postDate, newStatus) {
         if (!githubToken) {
-            githubToken = prompt('Enter your GitHub token (repo scope):');
+            githubToken = prompt('Enter your GitHub token (get from https://github.com/settings/tokens, need "repo" scope):');
             if (!githubToken) return;
             localStorage.setItem('githubToken', githubToken);
         }
         
-        // Find the post
         const postIndex = allPosts.findIndex(p => p.title === title && p.post_date === postDate);
         if (postIndex === -1) return;
         
@@ -392,55 +417,52 @@
         updateStats();
         
         try {
-            // Get current file with SHA
             const fileUrl = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${FILE_PATH}`;
-            const shaRes = await fetch(fileUrl, {
-                headers: { 'Authorization': `token ${githubToken}` }
-            });
+            const shaRes = await fetch(fileUrl, { headers: { 'Authorization': `token ${githubToken}` } });
             const shaData = await shaRes.json();
             const sha = shaData.sha;
             
-            // Build new CSV
             let csvContent = 'title,post_date,platform,caption,image_urls,link,status\n';
             allPosts.forEach(p => {
-                const title = (p.title || '').replace(/"/g, '""');
-                const caption = (p.caption || '').replace(/"/g, '""');
-                csvContent += `"${title}",${p.post_date},"${p.platform}","${caption}","${p.image_urls || ''}","${p.link || ''}",${p.status}\n`;
+                const t = (p.title || '').replace(/"/g, '""');
+                const c = (p.caption || '').replace(/"/g, '""');
+                csvContent += `"${t}",${p.post_date},"${p.platform}","${c}","${p.image_urls || ''}","${p.link || ''}",${p.status}\n`;
             });
             
             const contentBase64 = btoa(unescape(encodeURIComponent(csvContent)));
-            
             const response = await fetch(fileUrl, {
                 method: 'PUT',
-                headers: {
-                    'Authorization': `token ${githubToken}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    message: `Update: ${title} → ${newStatus}`,
-                    content: contentBase64,
-                    sha: sha,
-                    branch: BRANCH
-                })
+                headers: { 'Authorization': `token ${githubToken}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: `Update: ${title} → ${newStatus}`, content: contentBase64, sha: sha, branch: BRANCH })
             });
             
             if (response.ok) {
                 showMessage(`✅ Updated to "${newStatus}"`, 'success');
-                await loadPosts(); // Reload fresh data
+                await loadPosts();
             } else {
-                const err = await response.json();
-                throw new Error(err.message);
+                throw new Error('Update failed');
             }
         } catch (error) {
             showMessage(`❌ Failed: ${error.message}`, 'error');
-            // Revert
             allPosts[postIndex].status = originalStatus;
             renderPosts();
             updateStats();
         }
     }
     
-    // ================== TAB & VIEW CONTROLS ==================
+    function manualRefresh() {
+        showMessage('🔄 Refreshing...', 'info');
+        loadPosts();
+    }
+    
+    // Auto refresh every 15 seconds
+    function startAutoRefresh() {
+        loadPosts();
+        if (autoRefreshTimer) clearInterval(autoRefreshTimer);
+        autoRefreshTimer = setInterval(loadPosts, 15000);
+    }
+    
+    // Tab click handlers
     document.querySelectorAll('.tab').forEach(tab => {
         tab.addEventListener('click', () => {
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -464,9 +486,8 @@
         renderPosts();
     });
     
-    // ================== START ==================
-    loadPosts();
-    setInterval(loadPosts, 30000);
+    // Start
+    startAutoRefresh();
 </script>
 </body>
 </html>
