@@ -2,11 +2,11 @@ name: Content Factory - AI Generator
 
 on:
   schedule:
-    - cron: '0 2 * * *'  # Runs daily at 2 AM
-  workflow_dispatch:      # Manual trigger
+    - cron: '0 2 * * *'
+  workflow_dispatch:
     inputs:
       theme:
-        description: '📝 Theme/Topic (anything you want)'
+        description: '📝 Theme/Topic'
         required: true
         default: 'fitness motivation'
         type: string
@@ -35,6 +35,9 @@ jobs:
     
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
       
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -54,10 +57,22 @@ jobs:
         run: |
           python scripts/content_factory.py
       
-      - name: Commit generated content
+      - name: Commit and Push with Conflict Resolution
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+          
+          # Pull latest changes first
+          git pull --rebase origin main || true
+          
+          # Add the changed file
           git add social/posts.csv
-          git diff --cached --quiet || git commit -m "🤖 AI generated: ${{ github.event.inputs.theme }} [skip ci]"
-          git push
+          
+          # Commit if there are changes
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "🤖 AI generated: ${{ github.event.inputs.theme }}"
+            # Try to push, if fails, pull and retry once
+            git push origin main || (git pull --rebase origin main && git push origin main)
+          fi
