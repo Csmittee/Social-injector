@@ -1,22 +1,27 @@
-name: Content Factory - Daily Automation
+name: Content Factory - AI Generator
 
 on:
   schedule:
     - cron: '0 2 * * *'  # Runs daily at 2 AM
-  workflow_dispatch:      # Manual trigger for testing
+  workflow_dispatch:      # Manual trigger
     inputs:
       theme:
-        description: 'Content theme'
-        required: false
-        default: 'general'
+        description: '📝 Theme/Topic (anything you want)'
+        required: true
+        default: 'fitness motivation'
         type: string
       count:
-        description: 'Number of posts'
+        description: '🔢 Number of posts'
         required: false
         default: '5'
-        type: string
+        type: choice
+        options:
+          - '3'
+          - '5'
+          - '10'
+          - '14'
       platforms:
-        description: 'Platforms (comma separated)'
+        description: '📱 Platforms'
         required: false
         default: 'facebook,instagram'
         type: string
@@ -40,12 +45,12 @@ jobs:
         run: |
           pip install requests pandas
       
-      - name: Run Content Factory
+      - name: Run AI Content Factory
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          THEME: ${{ github.event.inputs.theme || 'general' }}
-          COUNT: ${{ github.event.inputs.count || '5' }}
-          PLATFORMS: ${{ github.event.inputs.platforms || 'facebook,instagram' }}
+          THEME: ${{ github.event.inputs.theme }}
+          COUNT: ${{ github.event.inputs.count }}
+          PLATFORMS: ${{ github.event.inputs.platforms }}
         run: |
           python scripts/content_factory.py
       
@@ -54,6 +59,5 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add social/posts.csv
-          git add social/ai_generated/
-          git diff --cached --quiet || git commit -m "Auto-generate daily content [skip ci]"
+          git diff --cached --quiet || git commit -m "🤖 AI generated: ${{ github.event.inputs.theme }} [skip ci]"
           git push
