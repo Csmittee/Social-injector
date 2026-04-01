@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Content Factory - Accepts parameters from GitHub Actions
+Content Factory - Matches Your CSV Structure
 """
 
 import os
@@ -14,8 +14,6 @@ class ContentFactory:
     def __init__(self):
         self.generator = AIContentGenerator()
         self.csv_path = Path('social/posts.csv')
-        self.ideas_dir = Path('social/ai_generated')
-        self.ideas_dir.mkdir(parents=True, exist_ok=True)
         
         # Read parameters from environment
         self.theme = os.getenv('THEME', 'general')
@@ -23,7 +21,7 @@ class ContentFactory:
         self.platforms = os.getenv('PLATFORMS', 'facebook,instagram').split(',')
         
     def generate_content(self):
-        """Generate content based on parameters"""
+        """Generate content and append to existing CSV"""
         
         print(f"🏭 Starting Content Factory")
         print(f"   Theme: {self.theme}")
@@ -41,61 +39,64 @@ class ContentFactory:
         for i, idea in enumerate(ideas):
             print(f"\n📝 Processing idea {i+1}: {idea.get('title', 'Untitled')}")
             
-            # Generate captions for each platform
+            # Generate captions
             captions = self.generator.generate_captions(idea, self.platforms)
             
             # Generate hashtags
             hashtags = self.generator.generate_hashtags(idea.get('title', self.theme))
             
-            # Create post time
-            post_time = start_date + timedelta(hours=i*3)
+            # Create post time (spread throughout week)
+            post_time = start_date + timedelta(days=i//3, hours=(i%3)*3)
             
-            # For multiple platforms, combine or create separate?
-            platform_str = ','.join(self.platforms)
+            # Combine caption with hashtags for Instagram style
+            main_caption = captions.get('instagram', captions.get('facebook', idea.get('core_message', '')))
+            if hashtags:
+                main_caption = f"{main_caption}\n\n{hashtags}"
             
-            # Combine caption with hashtags for Instagram
-            ig_caption = captions.get('instagram', '')
-            if ig_caption and hashtags:
-                ig_caption = f"{ig_caption}\n\n{hashtags}"
-            
+            # Create post matching YOUR CSV structure
             post = {
-                'title': idea.get('title', f"Idea {i+1}"),
+                'title': idea.get('title', f"{self.theme} - Post {i+1}"),
                 'post_date': post_time.strftime('%Y-%m-%d %H:%M'),
-                'platform': platform_str,
-                'caption': ig_caption or captions.get('facebook', idea.get('core_message', '')),
-                'image_urls': '',
-                'link': '',
+                'platform': ','.join(self.platforms).upper().replace('FACEBOOK', 'FB').replace('INSTAGRAM', 'IG'),
+                'caption': main_caption[:500],  # Limit length
+                'image_urls': '',  # Empty for now
+                'link': '',  # Empty for now
                 'status': 'pending'
             }
             
             all_posts.append(post)
-            print(f"   ✅ Created: {post['title']}")
+            print(f"   ✅ Created: {post['title']} for {post['platform']}")
         
-        # Save to CSV
-        self.save_to_csv(all_posts)
-        print(f"\n🎉 Generated {len(all_posts)} posts!")
+        # Append to existing CSV
+        self.append_to_csv(all_posts)
+        print(f"\n🎉 Generated {len(all_posts)} new posts!")
         
         return all_posts
     
-    def save_to_csv(self, posts):
-        """Save posts to CSV file"""
+    def append_to_csv(self, new_posts):
+        """Append new posts to existing CSV file"""
         
         fieldnames = ['title', 'post_date', 'platform', 'caption', 'image_urls', 'link', 'status']
         
+        # Read existing posts if file exists
         existing_posts = []
         if self.csv_path.exists():
             with open(self.csv_path, 'r', encoding='utf-8-sig') as f:
                 reader = csv.DictReader(f)
                 existing_posts = list(reader)
+            print(f"📖 Loaded {len(existing_posts)} existing posts")
         
-        all_posts = existing_posts + posts
+        # Append new posts
+        all_posts = existing_posts + new_posts
         
+        # Write back
         with open(self.csv_path, 'w', newline='', encoding='utf-8') as f:
             writer = csv.DictWriter(f, fieldnames=fieldnames)
             writer.writeheader()
             writer.writerows(all_posts)
         
-        print(f"\n💾 Saved to {self.csv_path}")
+        print(f"💾 Saved {len(new_posts)} new posts to {self.csv_path}")
+        print(f"📊 Total posts now: {len(all_posts)}")
 
 if __name__ == "__main__":
     factory = ContentFactory()
