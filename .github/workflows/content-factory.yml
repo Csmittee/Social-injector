@@ -4,12 +4,29 @@ on:
   schedule:
     - cron: '0 2 * * *'  # Runs daily at 2 AM
   workflow_dispatch:      # Manual trigger for testing
+    inputs:
+      theme:
+        description: 'Content theme'
+        required: false
+        default: 'general'
+        type: string
+      count:
+        description: 'Number of posts'
+        required: false
+        default: '5'
+        type: string
+      platforms:
+        description: 'Platforms (comma separated)'
+        required: false
+        default: 'facebook,instagram'
+        type: string
 
 jobs:
   create-content:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      actions: read
     
     steps:
       - uses: actions/checkout@v4
@@ -21,21 +38,14 @@ jobs:
       
       - name: Install dependencies
         run: |
-          pip install openai requests pandas pyairtable cloudinary python-dotenv
+          pip install requests pandas
       
       - name: Run Content Factory
         env:
-          # GitHub token for AI models (free)
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # Cloudinary for image hosting
-          CLOUDINARY_CLOUD_NAME: ${{ secrets.CLOUDINARY_CLOUD_NAME }}
-          CLOUDINARY_API_KEY: ${{ secrets.CLOUDINARY_API_KEY }}
-          CLOUDINARY_API_SECRET: ${{ secrets.CLOUDINARY_API_SECRET }}
-          # Airtable (optional - can use CSV first)
-          AIRTABLE_TOKEN: ${{ secrets.AIRTABLE_TOKEN }}
-          AIRTABLE_BASE_ID: ${{ secrets.AIRTABLE_BASE_ID }}
-          # Leonardo AI for images (optional initially)
-          LEONARDO_API_KEY: ${{ secrets.LEONARDO_API_KEY }}
+          THEME: ${{ github.event.inputs.theme || 'general' }}
+          COUNT: ${{ github.event.inputs.count || '5' }}
+          PLATFORMS: ${{ github.event.inputs.platforms || 'facebook,instagram' }}
         run: |
           python scripts/content_factory.py
       
