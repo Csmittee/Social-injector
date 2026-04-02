@@ -1,29 +1,43 @@
-name: Social Poster
+name: Social Poster (Dry Run Mode)
 
 on:
-  #schedule:
-   # - cron: '*/30 * * * *'  # Every 30 minutes for testing
+  # === TURN ON/OFF HERE ===
+  # Option A: Manual only (Recommended during dry-run)
   workflow_dispatch:
+  
+  # Option B: Schedule (Uncomment only when you want it to run automatically)
+  # schedule:
+  #   - cron: '0 8 * * *'     # Once per day at 8:00 AM (Thailand time)
+  #   - cron: '*/30 * * * *'  # Every 30 minutes (for testing)
 
 jobs:
   post:
-    #if: false
     runs-on: ubuntu-latest
+    
     steps:
-      - uses: actions/checkout@v4
-      
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      
-      - name: Run poster
+
+      - name: Run Social Poster (Dry Run)
         run: python scripts/social_poster.py
-      
-      - name: Commit changes
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Commit changes (if any)
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+          
           git add social/posts.csv
-          git diff --cached --quiet || git commit -m "Update post status [skip ci]"
-          git push
+          
+          if git diff --cached --quiet; then
+            echo "No changes to commit - Dry run completed."
+          else
+            git commit -m "Social Poster: Update status [dry-run] [skip ci]"
+            git push
+          fi
