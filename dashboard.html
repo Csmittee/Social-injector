@@ -190,7 +190,9 @@
             });
 
             if (response.ok) {
-                alert(`✅ "${title}" → ${newStatus.toUpperCase()}\n\nRefresh in 30 seconds.`);
+                const errorText = await response.text();
+                    console.error("GitHub API error:", response.status, errorText);
+                    alert(`Failed: ${response.status} - ${errorText}`);
             } else {
                 alert("Failed to trigger update.");
             }
