@@ -96,25 +96,42 @@
             }
         }
 
-        function parseCSV(text) { /* same robust parser as before */ 
+        function parseCSV(text) {
             const lines = text.trim().split('\n');
             if (lines.length < 2) return [];
-            const headers = lines[0].split(',').map(h => h.trim());
+            
+            const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
             const posts = [];
+            
             for (let i = 1; i < lines.length; i++) {
                 if (!lines[i].trim()) continue;
-                let inQuotes = false, current = '', values = [];
+                
+                const values = [];
+                let current = '';
+                let inQuotes = false;
+                
                 for (let char of lines[i]) {
-                    if (char === '"') inQuotes = !inQuotes;
-                    else if (char === ',' && !inQuotes) { values.push(current.trim()); current = ''; }
-                    else current += char;
+                    if (char === '"') {
+                        inQuotes = !inQuotes;
+                    } else if (char === ',' && !inQuotes) {
+                        values.push(current);
+                        current = '';
+                    } else {
+                        current += char;
+                    }
                 }
-                values.push(current.trim());
+                values.push(current);   // push the last field
+                
                 const post = {};
                 headers.forEach((header, idx) => {
-                    let val = values[idx] !== undefined ? values[idx] : '';
-                    post[header] = val.replace(/^"|"$/g, '').trim();
+                    let val = (values[idx] || '').trim();
+                    // Remove surrounding quotes if present
+                    if (val.startsWith('"') && val.endsWith('"')) {
+                        val = val.slice(1, -1);
+                    }
+                    post[header] = val;
                 });
+                
                 posts.push(post);
             }
             return posts;
