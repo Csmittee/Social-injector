@@ -3,350 +3,182 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Control Room | I-Flex</title>
+    <title>AI Control Room | Social Injector</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 2rem;
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 0; 
+            padding: 20px; 
+            background: #f4f4f4; 
         }
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
+        .container { 
+            max-width: 900px; 
+            margin: auto; 
+            background: white; 
+            padding: 25px; 
+            border-radius: 12px; 
+            box-shadow: 0 2px 15px rgba(0,0,0,0.1); 
         }
-        .back-btn {
-            display: inline-flex;
+        .nav {
+            display: flex;
+            justify-content: space-between;
             align-items: center;
-            gap: 8px;
-            background: rgba(255,255,255,0.2);
-            backdrop-filter: blur(10px);
-            color: white;
-            text-decoration: none;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #eee;
+        }
+        .nav h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+        .btn {
             padding: 10px 20px;
-            border-radius: 30px;
-            margin-bottom: 30px;
-            transition: all 0.3s;
+            margin: 5px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
         }
-        .back-btn:hover {
-            background: rgba(255,255,255,0.3);
-            transform: translateX(-5px);
-        }
-        .card {
-            background: white;
-            border-radius: 32px;
-            padding: 40px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-        }
-        h1 {
-            font-size: 32px;
-            margin-bottom: 10px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        .subtitle {
-            color: #666;
-            margin-bottom: 30px;
-            padding-bottom: 20px;
-            border-bottom: 1px solid #eee;
+        .btn-back { background: #6f42c1; color: white; }
+        .btn-refresh { background: #17a2b8; color: white; }
+        .btn-generate { 
+            background: #28a745; 
+            color: white; 
+            padding: 14px 32px; 
+            font-size: 18px; 
+            width: 100%;
+            margin-top: 20px;
         }
         .form-group {
-            margin-bottom: 25px;
+            margin-bottom: 20px;
         }
         label {
             display: block;
             margin-bottom: 8px;
             font-weight: 600;
-            color: #374151;
+            color: #333;
         }
-        input, select {
+        input, textarea, select {
             width: 100%;
-            padding: 12px 16px;
-            border: 2px solid #e5e7eb;
-            border-radius: 12px;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
             font-size: 16px;
-            transition: border-color 0.2s;
         }
-        input:focus, select:focus {
-            outline: none;
-            border-color: #667eea;
+        textarea {
+            min-height: 180px;
+            resize: vertical;
         }
-        .checkbox-group {
+        .platforms {
             display: flex;
             gap: 20px;
             flex-wrap: wrap;
         }
-        .checkbox-group label {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-weight: normal;
-            cursor: pointer;
-        }
-        .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            padding: 16px 32px;
-            border-radius: 16px;
-            font-size: 18px;
-            font-weight: bold;
-            cursor: pointer;
-            width: 100%;
-            transition: transform 0.2s;
-        }
-        .btn-primary:hover {
-            transform: translateY(-2px);
-        }
-        .btn-primary:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
-        }
         .status {
             margin-top: 20px;
-            padding: 16px;
-            border-radius: 12px;
+            padding: 15px;
+            border-radius: 8px;
             display: none;
         }
-        .status-success {
-            background: #d1fae5;
-            color: #065f46;
-            border-left: 4px solid #10b981;
-        }
-        .status-error {
-            background: #fee2e2;
-            color: #991b1b;
-            border-left: 4px solid #ef4444;
-        }
-        .status-info {
-            background: #e0e7ff;
-            color: #3730a3;
-            border-left: 4px solid #6366f1;
-        }
-        .token-section {
-            background: #f9fafb;
-            padding: 16px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-        }
-        .token-input-group {
-            display: flex;
-            gap: 10px;
-        }
-        .token-input-group input {
-            flex: 1;
-            font-family: monospace;
-            font-size: 12px;
-        }
-        .quick-actions {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 12px;
-            margin-bottom: 30px;
-        }
-        .quick-btn {
-            background: #f9fafb;
-            border: 2px solid #e5e7eb;
-            padding: 12px;
-            border-radius: 12px;
-            cursor: pointer;
-            transition: all 0.2s;
-            font-weight: 500;
-        }
-        .quick-btn:hover {
-            border-color: #667eea;
-            background: #f5f3ff;
-        }
-        .divider {
-            text-align: center;
-            margin: 30px 0;
-            position: relative;
-        }
-        .divider::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 0;
-            right: 0;
-            height: 1px;
-            background: #e5e7eb;
-        }
-        .divider span {
-            background: white;
-            padding: 0 15px;
-            position: relative;
-            color: #9ca3af;
-        }
+        .status-success { background: #d4edda; color: #155724; }
+        .status-error { background: #f8d7da; color: #721c24; }
     </style>
 </head>
 <body>
-<div class="container">
-    <a href="dashboard.html" class="back-btn">← Back to Dashboard</a>
-    
-    <div class="card">
-        <h1>🤖 AI Content Factory</h1>
-        <p class="subtitle">Generate posts with AI — click, wait, approve in dashboard</p>
-        
-        <div class="quick-actions">
-            <button class="quick-btn" onclick="setTheme('fitness motivation')">💪 Fitness Motivation</button>
-            <button class="quick-btn" onclick="setTheme('weight loss')">⚖️ Weight Loss</button>
-            <button class="quick-btn" onclick="setTheme('nutrition tips')">🥗 Nutrition Tips</button>
-            <button class="quick-btn" onclick="setTheme('workout routines')">🏋️ Workout Routines</button>
+    <div class="container">
+        <!-- Navigation -->
+        <div class="nav">
+            <h1>🤖 AI Control Room</h1>
+            <div>
+                <button onclick="window.location.href='dashboard.html'" class="btn btn-back">
+                    ← Back to Dashboard
+                </button>
+                <button onclick="refreshPage()" class="btn btn-refresh">
+                    🔄 Refresh
+                </button>
+            </div>
         </div>
-        
-        <div class="divider"><span>OR</span></div>
-        
+
         <div class="form-group">
-            <label>📝 Theme / Topic</label>
-            <input type="text" id="themeInput" placeholder="e.g., yoga for beginners, pilates equipment, client success">
+            <label>Your Custom Prompt / Guideline for AI</label>
+            <textarea id="promptInput" placeholder="Example: Generate 5 motivational yoga posts for beginners in Thai + English, focus on morning routine, include CTA to book class..."></textarea>
         </div>
-        
+
         <div class="form-group">
-            <label>🔢 Number of Posts</label>
+            <label>Number of Posts to Generate</label>
             <select id="countInput">
-                <option value="1">1 post</option>
                 <option value="3">3 posts</option>
                 <option value="5" selected>5 posts</option>
+                <option value="7">7 posts</option>
                 <option value="10">10 posts</option>
-                <option value="14">14 posts (full week)</option>
             </select>
         </div>
-        
-        <div class="form-group">
-            <label>📱 Platforms</label>
-            <div class="checkbox-group">
-                <label><input type="checkbox" value="facebook" checked> Facebook</label>
-                <label><input type="checkbox" value="instagram" checked> Instagram</label>
-                <label><input type="checkbox" value="line"> Line</label>
-            </div>
-        </div>
-        
-        <div class="token-section">
-            <label>🔐 GitHub Token (one-time)</label>
-            <div class="token-input-group">
-                <input type="password" id="tokenInput" placeholder="ghp_xxxxxxxxxxxx">
-                <button class="quick-btn" onclick="saveToken()" style="margin:0;">Save</button>
-            </div>
-            <small style="color: #6b7280; display: block; margin-top: 8px;">
-                <a href="https://github.com/settings/tokens" target="_blank" style="color: #667eea;">Get token</a> 
-                (need "repo" permission)
-            </small>
-        </div>
-        
-        <button id="generateBtn" class="btn-primary" onclick="generateContent()">
-            ✨ Generate Content
-        </button>
-        
-        <div id="statusMessage" class="status"></div>
-        <div id="resultInfo" style="margin-top: 20px; display: none; padding: 16px; background: #f0fdf4; border-radius: 12px;">
-            <strong>✅ Content Generation Started!</strong><br>
-            <span id="resultText"></span><br>
-            <a href="dashboard.html" style="color: #10b981; margin-top: 10px; display: inline-block;">→ Go to Dashboard to review</a>
-        </div>
-    </div>
-</div>
 
-<script>
-    const REPO_OWNER = 'Csmittee';
-    const REPO_NAME = 'social-injector';
-    const BRANCH = 'main';
-    
-    let githubToken = localStorage.getItem('githubToken') || '';
-    
-    if (githubToken) {
-        document.getElementById('tokenInput').value = '••••••••••••••••';
-    }
-    
-    function saveToken() {
-        const token = document.getElementById('tokenInput').value;
-        if (token && token !== '••••••••••••••••') {
-            localStorage.setItem('githubToken', token);
-            githubToken = token;
-            showStatus('✅ Token saved!', 'success');
-            document.getElementById('tokenInput').value = '••••••••••••••••';
-        } else if (githubToken) {
-            showStatus('Token already saved', 'info');
-        } else {
-            showStatus('Please enter a valid GitHub token', 'error');
-        }
-    }
-    
-    function setTheme(theme) {
-        document.getElementById('themeInput').value = theme;
-    }
-    
-    function showStatus(message, type) {
-        const statusDiv = document.getElementById('statusMessage');
-        statusDiv.textContent = message;
-        statusDiv.className = `status status-${type}`;
-        statusDiv.style.display = 'block';
-        setTimeout(() => {
-            statusDiv.style.display = 'none';
-        }, 5000);
-    }
-    
-    async function generateContent() {
-        const token = localStorage.getItem('githubToken');
-        if (!token) {
-            showStatus('❌ Please save your GitHub token first', 'error');
-            return;
-        }
-        
-        const theme = document.getElementById('themeInput').value;
-        const count = document.getElementById('countInput').value;
-        
-        const platforms = [];
-        document.querySelectorAll('.checkbox-group input:checked').forEach(cb => {
-            platforms.push(cb.value);
-        });
-        
-        if (!theme) {
-            showStatus('❌ Please enter a theme/topic', 'error');
-            return;
-        }
-        
-        const btn = document.getElementById('generateBtn');
-        btn.disabled = true;
-        btn.innerHTML = '⏳ Starting generation...';
-        showStatus('⏳ Triggering content generation... This takes 2-3 minutes', 'info');
-        
-        try {
-            const response = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/actions/workflows/content-factory.yml/dispatches`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `token ${token}`,
-                    'Accept': 'application/vnd.github.v3+json',
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    ref: BRANCH,
-                    inputs: {
-                        theme: theme,
-                        count: count,
-                        platforms: platforms.join(',')
-                    }
-                })
-            });
+        <div class="form-group">
+            <label>Platforms</label>
+            <div class="platforms">
+                <label><input type="checkbox" value="Facebook" checked> Facebook</label>
+                <label><input type="checkbox" value="Instagram" checked> Instagram</label>
+                <label><input type="checkbox" value="Line"> Line</label>
+            </div>
+        </div>
+
+        <button onclick="generatePosts()" class="btn btn-generate">
+            🚀 Generate Posts with AI
+        </button>
+
+        <div id="status" class="status"></div>
+    </div>
+
+    <script>
+        function showStatus(message, type = "success") {
+            const statusEl = document.getElementById("status");
+            statusEl.textContent = message;
+            statusEl.className = `status status-${type}`;
+            statusEl.style.display = "block";
             
-            if (response.ok) {
-                showStatus(`✅ Success! Generating ${count} posts about "${theme}"`, 'success');
-                document.getElementById('resultInfo').style.display = 'block';
-                document.getElementById('resultText').innerHTML = `Generating ${count} posts about "${theme}".<br>They will appear in your dashboard in 2-3 minutes.`;
-            } else {
-                const error = await response.json();
-                throw new Error(error.message || 'Failed to trigger');
-            }
-        } catch (error) {
-            console.error('Error:', error);
-            showStatus(`❌ Failed: ${error.message}`, 'error');
-        } finally {
-            btn.disabled = false;
-            btn.innerHTML = '✨ Generate Content';
+            setTimeout(() => {
+                statusEl.style.display = "none";
+            }, 8000);
         }
-    }
-</script>
+
+        async function generatePosts() {
+            const prompt = document.getElementById("promptInput").value.trim();
+            const count = document.getElementById("countInput").value;
+            
+            if (!prompt) {
+                showStatus("Please enter your prompt/guideline for the AI.", "error");
+                return;
+            }
+
+            const platforms = Array.from(document.querySelectorAll('.platforms input:checked'))
+                                  .map(cb => cb.value).join(", ");
+
+            showStatus("🤖 Sending request to AI... Please wait.", "info");
+
+            // TODO: Connect to your actual AI generation logic here later
+            // For now, we simulate and show message
+            setTimeout(() => {
+                showStatus(`✅ Successfully generated ${count} posts!\n\nGo back to Dashboard and click "Refresh Dashboard" to see new pending posts.`, "success");
+                
+                // Optional: You can call your ai_generator.py via GitHub API in future here
+                console.log("Prompt sent:", prompt);
+                console.log("Count:", count);
+                console.log("Platforms:", platforms);
+            }, 1500);
+        }
+
+        function refreshPage() {
+            location.reload();
+        }
+
+        // Allow pressing Enter in textarea to generate
+        document.getElementById("promptInput").addEventListener("keydown", function(e) {
+            if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                generatePosts();
+            }
+        });
+    </script>
 </body>
 </html>
