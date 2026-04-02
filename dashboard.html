@@ -191,7 +191,7 @@
                 const response = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/actions/workflows/update-csv.yml/dispatches`, {
                     method: "POST",
                     headers: {
-                        "Authorization": `token ${csmittee_token}`,   // We will add this later
+                       
                         "Accept": "application/vnd.github.v3+json"
                     },
                     body: JSON.stringify({
