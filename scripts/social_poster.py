@@ -1,51 +1,61 @@
-name: Social Poster
+import csv
+import os
+from datetime import datetime
 
-on:
-  # Run every 30 minutes (for testing)
-  schedule:
-    - cron: '*/30 * * * *'
-  
-  # Allow manual trigger from GitHub
-  workflow_dispatch:
+CSV_PATH = "social/posts.csv"
 
-jobs:
-  post:
-    runs-on: ubuntu-latest
+def load_approved_posts():
+    """Load posts with status 'approved'"""
+    if not os.path.isfile(CSV_PATH):
+        print("❌ posts.csv not found!")
+        return []
     
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}   # Needed for pushing changes
+    approved = []
+    with open(CSV_PATH, mode='r', newline='', encoding='utf-8') as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            if (row.get('status') or '').strip().lower() == 'approved':
+                approved.append(row)
+    return approved
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
 
-      - name: Install dependencies (if any)
-        run: |
-          pip install requests   # Add more packages if your poster needs them
+def simulate_post(post):
+    """Simulate posting - No real API call yet"""
+    print(f"\n🔄 [DRY RUN] Simulating post: {post.get('title')}")
+    print(f"   Platform : {post.get('platform', 'N/A')}")
+    print(f"   Date     : {post.get('post_date', 'N/A')}")
+    print(f"   Caption  : {post.get('caption', '')[:120]}...\n")
+    
+    # In real version, you will call Facebook/Instagram API here
+    return True  # Simulate success
 
-      - name: Run Social Poster
-        run: python scripts/social_poster.py
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # Add your social media tokens here later:
-          # FB_ACCESS_TOKEN: ${{ secrets.FB_ACCESS_TOKEN }}
-          # IG_ACCESS_TOKEN: ${{ secrets.IG_ACCESS_TOKEN }}
 
-      - name: Commit and push status changes
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          
-          git add social/posts.csv
-          
-          # Only commit if there are actual changes
-          if git diff --cached --quiet; then
-            echo "No changes to commit."
-          else
-            git commit -m "Update post status to 'posted' [skip ci]"
-            git push
-          fi
+def main():
+    print("=" * 60)
+    print("🚀 SOCIAL POSTER - DRY RUN MODE")
+    print(f"Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    print("=" * 60)
+    
+    approved_posts = load_approved_posts()
+    
+    if not approved_posts:
+        print("✅ No approved posts ready to post at this time.")
+        print("   (Approve some posts from the dashboard first)")
+        return
+    
+    print(f"Found {len(approved_posts)} approved post(s).\n")
+    
+    for post in approved_posts:
+        success = simulate_post(post)
+        if success:
+            print(f"✅ [DRY RUN] Successfully simulated posting: {post.get('title')}")
+            # TODO: Later change status to 'posted'
+        else:
+            print(f"❌ Failed to simulate post: {post.get('title')}")
+    
+    print("\n🏁 Dry run completed. No real posting happened.")
+    print("   When ready, we will connect real social media APIs.")
+
+
+if __name__ == "__main__":
+    main()
