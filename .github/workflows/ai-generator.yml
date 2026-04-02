@@ -1,0 +1,54 @@
+name: AI Post Generator
+
+on:
+  workflow_dispatch:
+    inputs:
+      prompt:
+        description: "AI generation prompt"
+        required: true
+      count:
+        description: "Number of posts to generate"
+        required: true
+        default: "5"
+      platforms:
+        description: "Comma-separated platforms: Facebook,Instagram,Line"
+        required: true
+        default: "Facebook,Instagram"
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install anthropic
+
+      - name: Generate posts and append to CSV
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          python scripts/ai_generator.py \
+            --prompt "${{ github.event.inputs.prompt }}" \
+            --count "${{ github.event.inputs.count }}" \
+            --platforms "${{ github.event.inputs.platforms }}"
+
+      - name: Commit new posts
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add social/posts.csv
+          git diff --cached --quiet || git commit -m "feat: AI generated ${{ github.event.inputs.count }} new post(s)"
+          git push
