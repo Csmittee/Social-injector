@@ -1,0 +1,42 @@
+name: Update Post Status
+
+on:
+  workflow_dispatch:
+    inputs:
+      title:
+        description: "Exact post title to update"
+        required: true
+      status:
+        description: "New status: approved | rejected | posted"
+        required: true
+
+jobs:
+  update-status:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Update CSV status
+        run: |
+          python scripts/update_status.py \
+            --title "${{ github.event.inputs.title }}" \
+            --status "${{ github.event.inputs.status }}"
+
+      - name: Commit updated CSV
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add social/posts.csv
+          git diff --cached --quiet || git commit -m "chore: update status of '${{ github.event.inputs.title }}' → ${{ github.event.inputs.status }}"
+          git push
