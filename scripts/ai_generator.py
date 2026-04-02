@@ -25,27 +25,32 @@ def generate_posts_with_ai():
     """Generate social media posts using AI (GitHub Models or other LLM)."""
     
     # Simple prompt template - you can make it more advanced later
-    prompt = f"""
-You are a professional social media content creator for a {NICHE} business.
-
-Generate {NUM_POSTS} engaging social media posts.
-
-For each post, return a valid JSON array with these exact fields:
-- title: Short catchy title (max 60 characters)
-- post_date: Suggested posting date in format YYYY-MM-DD HH:MM (spread over next 7 days)
-- platform: "{PLATFORMS}"
-- caption: Long, engaging caption with emojis, calls to action, and hashtags (in Thai + English if possible)
-- image_urls: Leave empty for now ("")
-- link: "" (we will add later)
-
-Return ONLY a valid JSON array like this:
-[
-  {{"title": "...", "post_date": "...", ...}},
-  ...
-]
-
-Make captions natural, motivational, and suitable for Facebook & Instagram.
-"""
+   prompt = f"""
+    You are a professional social media content creator for a {NICHE} business.
+    
+    Generate {NUM_POSTS} engaging posts.
+    
+    Rules for the "link" field:
+    - If the post is a strong Call-To-Action (CTA) such as "Book now", "Register", "Buy", "Join class", "Limited offer", etc. → put the actual URL (example: https://yourwebsite.com/book).
+    - For normal motivational / awareness / inspirational posts → leave link as empty string "".
+    
+    Return ONLY a valid JSON array. Each object must have exactly these fields:
+    - title
+    - post_date (YYYY-MM-DD HH:MM, spread over next 7 days)
+    - platform
+    - caption (long, engaging, with emojis + hashtags, Thai + English ok)
+    - image_urls (leave empty "")
+    - link (URL or "")
+    - status: "pending"
+    
+    Example of CTA post:
+    {{"title": "Yoga Class This Weekend", ..., "link": "https://yourwebsite.com/book-yoga"}}
+    
+    Example of normal post:
+    {{"title": "Morning Motivation", ..., "link": ""}}
+    
+    Make captions natural and suitable for Facebook & Instagram.
+    """
 
     try:
         # === Replace this section with your actual LLM call ===
