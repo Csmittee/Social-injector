@@ -44,7 +44,7 @@
 
         
 
-        <div id="dashboardContent" 
+        <div id="dashboardContent">
             <div class="stats" id="stats">
                 <div class="stat-card"><div class="stat-number" id="statPending">0</div><div>Pending</div></div>
                 <div class="stat-card"><div class="stat-number" id="statApproved">0</div><div>Approved</div></div>
@@ -66,144 +66,151 @@
     </div>
 
     <script>
-      
-        const REPO_OWNER = "Csmittee";
-        const REPO_NAME = "social-injector";
-        const FILE_PATH = "social/posts.csv";
+    const REPO_OWNER = "Csmittee";
+    const REPO_NAME = "social-injector";
+    const FILE_PATH = "social/posts.csv";
 
-        let allPosts = [];
-        let currentFilter = "all";
+    let allPosts = [];
+    let currentFilter = "all";
 
-       
+    async function loadPosts() {
+        try {
+            const url = `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/main/${FILE_PATH}?t=${Date.now()}`;
+            const response = await fetch(url);
+            const text = await response.text();
+            allPosts = parseCSV(text);
+            updateStats();
+            renderPosts();
+        } catch (e) {
+            console.error(e);
+            document.getElementById('postsContainer').innerHTML = '<p style="color:red;">Error loading posts: ' + e.message + '</p>';
+        }
+    }
 
-        function parseCSV(text) {
-            const lines = text.trim().split('\n');
-            if (lines.length < 2) return [];
-            const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
-            const posts = [];
-            for (let i = 1; i < lines.length; i++) {
-                if (!lines[i].trim()) continue;
-                const values = [];
-                let current = '';
-                let inQuotes = false;
-                for (let char of lines[i]) {
-                    if (char === '"') inQuotes = !inQuotes;
-                    else if (char === ',' && !inQuotes) {
-                        values.push(current);
-                        current = '';
-                    } else current += char;
-                }
-                values.push(current);
-                const post = {};
-                headers.forEach((header, idx) => {
-                    let val = (values[idx] || '').trim();
-                    if (val.startsWith('"') && val.endsWith('"')) val = val.slice(1, -1);
-                    post[header] = val;
-                });
-                posts.push(post);
+    function parseCSV(text) {
+        const lines = text.trim().split('\n');
+        if (lines.length < 2) return [];
+        const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
+        const posts = [];
+        for (let i = 1; i < lines.length; i++) {
+            if (!lines[i].trim()) continue;
+            const values = [];
+            let current = '';
+            let inQuotes = false;
+            for (let char of lines[i]) {
+                if (char === '"') inQuotes = !inQuotes;
+                else if (char === ',' && !inQuotes) {
+                    values.push(current);
+                    current = '';
+                } else current += char;
             }
-            return posts;
-        }
-
-        function updateStats() { /* same as before */ 
-            const pending = allPosts.filter(p => (p.status || '').toLowerCase() === 'pending').length;
-            const approved = allPosts.filter(p => (p.status || '').toLowerCase() === 'approved').length;
-            const posted = allPosts.filter(p => (p.status || '').toLowerCase() === 'posted').length;
-            const rejected = allPosts.filter(p => (p.status || '').toLowerCase() === 'rejected').length;
-            document.getElementById('statPending').textContent = pending;
-            document.getElementById('statApproved').textContent = approved;
-            document.getElementById('statPosted').textContent = posted;
-            document.getElementById('statRejected').textContent = rejected;
-            document.getElementById('statTotal').textContent = allPosts.length;
-        }
-
-        function filterPosts() {
-            if (currentFilter === 'all') return allPosts;
-            return allPosts.filter(p => (p.status || '').toLowerCase() === currentFilter);
-        }
-
-        function renderPosts() {
-            const container = document.getElementById('postsContainer');
-            container.innerHTML = '';
-            const filtered = filterPosts();
-            if (filtered.length === 0) {
-                container.innerHTML = `<p style="grid-column:1/-1;text-align:center;padding:40px;color:#666;">No posts in this category.</p>`;
-                return;
-            }
-            filtered.forEach(post => {
-                const status = (post.status || 'pending').toLowerCase();
-                const card = document.createElement('div');
-                card.className = 'post-card';
-                card.innerHTML = `
-                    <h3>${post.title || 'Untitled'}</h3>
-                    <p><strong>Platform:</strong> ${post.platform || ''}</p>
-                    <p><strong>Date:</strong> ${post.post_date || ''}</p>
-                    <p style="white-space:pre-wrap;">${post.caption || ''}</p>
-                    ${post.link ? `<p><strong>Link:</strong> <a href="${post.link}" target="_blank">${post.link}</a></p>` : ''}
-                    <div class="status-${status}" style="margin:10px 0;">${status.toUpperCase()}</div>
-                    ${status === 'pending' ? `
-                        <button class="btn btn-approve" onclick="approvePost('${post.title.replace(/'/g, "\\'")}')">Approve</button>
-                        <button class="btn btn-reject" onclick="rejectPost('${post.title.replace(/'/g, "\\'")}')">Reject</button>
-                    ` : ''}
-                `;
-                container.appendChild(card);
+            values.push(current);
+            const post = {};
+            headers.forEach((header, idx) => {
+                let val = (values[idx] || '').trim();
+                if (val.startsWith('"') && val.endsWith('"')) val = val.slice(1, -1);
+                post[header] = val;
             });
+            posts.push(post);
         }
+        return posts;
+    }
 
-        // Tab handling
-        document.querySelectorAll('.tab').forEach(tab => {
-            tab.addEventListener('click', () => {
-                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-                tab.classList.add('active');
-                currentFilter = tab.getAttribute('data-status');
-                renderPosts();
-            });
+    function updateStats() {
+        const pending = allPosts.filter(p => (p.status || '').toLowerCase() === 'pending').length;
+        const approved = allPosts.filter(p => (p.status || '').toLowerCase() === 'approved').length;
+        const posted = allPosts.filter(p => (p.status || '').toLowerCase() === 'posted').length;
+        const rejected = allPosts.filter(p => (p.status || '').toLowerCase() === 'rejected').length;
+        document.getElementById('statPending').textContent = pending;
+        document.getElementById('statApproved').textContent = approved;
+        document.getElementById('statPosted').textContent = posted;
+        document.getElementById('statRejected').textContent = rejected;
+        document.getElementById('statTotal').textContent = allPosts.length;
+    }
+
+    function filterPosts() {
+        if (currentFilter === 'all') return allPosts;
+        return allPosts.filter(p => (p.status || '').toLowerCase() === currentFilter);
+    }
+
+    function renderPosts() {
+        const container = document.getElementById('postsContainer');
+        container.innerHTML = '';
+        const filtered = filterPosts();
+        if (filtered.length === 0) {
+            container.innerHTML = `<p style="grid-column:1/-1;text-align:center;padding:40px;color:#666;">No posts in this category.</p>`;
+            return;
+        }
+        filtered.forEach(post => {
+            const status = (post.status || 'pending').toLowerCase();
+            const card = document.createElement('div');
+            card.className = 'post-card';
+            card.innerHTML = `
+                <h3>${post.title || 'Untitled'}</h3>
+                <p><strong>Platform:</strong> ${post.platform || ''}</p>
+                <p><strong>Date:</strong> ${post.post_date || ''}</p>
+                <p style="white-space:pre-wrap;">${post.caption || ''}</p>
+                ${post.link ? `<p><strong>Link:</strong> <a href="${post.link}" target="_blank">${post.link}</a></p>` : ''}
+                <div class="status-${status}" style="margin:10px 0;">${status.toUpperCase()}</div>
+                ${status === 'pending' ? `
+                    <button class="btn btn-approve" onclick="approvePost('${post.title.replace(/'/g, "\\'")}')">Approve</button>
+                    <button class="btn btn-reject" onclick="rejectPost('${post.title.replace(/'/g, "\\'")}')">Reject</button>
+                ` : ''}
+            `;
+            container.appendChild(card);
         });
+    }
 
-        // Safe Approve / Reject using GitHub Action
-        async function updatePostStatus(title, newStatus) {
-            if (!confirm(`Mark "${title}" as ${newStatus.toUpperCase()}?`)) return;
+    // Tab handling
+    document.querySelectorAll('.tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            currentFilter = tab.getAttribute('data-status');
+            renderPosts();
+        });
+    });
 
-            try {
-                const response = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/actions/workflows/update-csv.yml/dispatches`, {
-                    method: "POST",
-                    headers: {
-                       
-                        "Accept": "application/vnd.github.v3+json"
-                    },
-                    body: JSON.stringify({
-                        ref: "main",
-                        inputs: {
-                            title: title,
-                            status: newStatus.toLowerCase()
-                        }
-                    })
-                });
+    async function updatePostStatus(title, newStatus) {
+        if (!confirm(`Mark "${title}" as ${newStatus.toUpperCase()}?`)) return;
 
-                if (response.ok) {
-                    alert(`✅ "${title}" → ${newStatus.toUpperCase()}\n\nThe change will appear after a few seconds. Click Refresh.`);
-                } else {
-                    alert("Failed to trigger update. Token may be invalid.");
-                }
-            } catch (e) {
-                console.error(e);
-                alert("Error connecting to GitHub. Please check your token.");
+        try {
+            const response = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/actions/workflows/update-csv.yml/dispatches`, {
+                method: "POST",
+                headers: {
+                    "Accept": "application/vnd.github.v3+json"
+                },
+                body: JSON.stringify({
+                    ref: "main",
+                    inputs: {
+                        title: title,
+                        status: newStatus.toLowerCase()
+                    }
+                })
+            });
+
+            if (response.ok) {
+                alert(`✅ "${title}" → ${newStatus.toUpperCase()}\n\nRefresh in 30 seconds.`);
+            } else {
+                alert("Failed to trigger update.");
             }
+        } catch (e) {
+            console.error(e);
+            alert("Error connecting to GitHub.");
         }
+    }
 
-        function approvePost(title) { updatePostStatus(title, "approved"); }
-        function rejectPost(title) { updatePostStatus(title, "rejected"); }
+    function approvePost(title) { updatePostStatus(title, "approved"); }
+    function rejectPost(title) { updatePostStatus(title, "rejected"); }
 
-        function refreshDashboard() {
-            document.getElementById('postsContainer').innerHTML = '<p style="text-align:center;">Loading latest data...</p>';
-            loadPosts();
-        }
-          // ✅ ADD THIS LINE
-            loadPosts();
-            
-            // ✅ OPTIONAL: Auto-refresh every 30 seconds
-            setInterval(loadPosts, 30000);
-                
-    </script>
+    function refreshDashboard() {
+        document.getElementById('postsContainer').innerHTML = '<p style="text-align:center;">Loading latest data...</p>';
+        loadPosts();
+    }
+
+    // START DASHBOARD
+    loadPosts();
+    setInterval(loadPosts, 30000);
+</script>
 </body>
 </html>
