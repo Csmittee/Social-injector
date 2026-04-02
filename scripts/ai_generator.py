@@ -1,158 +1,110 @@
-#!/usr/bin/env python3
-"""
-AI Content Generator for I-Flex Thailand
-Generates ideas, captions, and hashtags using free GitHub Models
-"""
-
 import os
 import json
-import csv
-import requests
 from datetime import datetime, timedelta
-from pathlib import Path
+from content_factory import append_to_csv
 
-class AIContentGenerator:
-    def __init__(self):
-        self.github_token = os.getenv('GITHUB_TOKEN')
-        self.api_url = "https://models.inference.ai.azure.com/chat/completions"
-        
-    def generate_ideas(self, theme, count=10):
-        """Generate post ideas using AI"""
-        
-        prompt = f"""You are a social media strategist for I-Flex Thailand, a fitness equipment brand.
-        
-Generate {count} engaging social media post ideas about "{theme}".
+# ========================= CONFIG =========================
+# Choose your model (GitHub Models, Grok, OpenAI, etc.)
+MODEL = "gpt-4o-mini"          # Change to your preferred model
+# If using GitHub Models via API, you can set the base URL and token here
 
-For each idea, provide:
-- Title: Short catchy title
-- Hook: First line that grabs attention (max 15 words)
-- Core message: Main content (max 50 words)
-- Visual description: What image should accompany it
-- Target audience: Who this is for (beginners, advanced, business owners)
+# How many posts to generate per run
+NUM_POSTS = 5
 
-Return as JSON array with these fields.
-Make content authentic and suitable for Thai fitness market.
+# Target platforms
+PLATFORMS = "Facebook, Instagram"
+
+# Business / Niche (change this to your content theme)
+NICHE = "Fitness & Yoga Motivation"   # Example: "Fitness & Yoga Motivation"
+
+# Optional: GitHub token (if needed for other calls)
+GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")   # Set this in your environment or GitHub Secrets
+# =========================================================
+
+def generate_posts_with_ai():
+    """Generate social media posts using AI (GitHub Models or other LLM)."""
+    
+    # Simple prompt template - you can make it more advanced later
+    prompt = f"""
+You are a professional social media content creator for a {NICHE} business.
+
+Generate {NUM_POSTS} engaging social media posts.
+
+For each post, return a valid JSON array with these exact fields:
+- title: Short catchy title (max 60 characters)
+- post_date: Suggested posting date in format YYYY-MM-DD HH:MM (spread over next 7 days)
+- platform: "{PLATFORMS}"
+- caption: Long, engaging caption with emojis, calls to action, and hashtags (in Thai + English if possible)
+- image_urls: Leave empty for now ("")
+- link: "" (we will add later)
+
+Return ONLY a valid JSON array like this:
+[
+  {{"title": "...", "post_date": "...", ...}},
+  ...
+]
+
+Make captions natural, motivational, and suitable for Facebook & Instagram.
 """
-        
-        headers = {
-            "Authorization": f"Bearer {self.github_token}",
-            "Content-Type": "application/json"
-        }
-        
-        payload = {
-            "model": "gpt-4o-mini",  # Free with GitHub
-            "messages": [
-                {"role": "system", "content": "You are a creative social media strategist. Return only valid JSON."},
-                {"role": "user", "content": prompt}
-            ],
-            "temperature": 0.8,
-            "max_tokens": 2000
-        }
-        
-        try:
-            response = requests.post(self.api_url, headers=headers, json=payload)
-            response.raise_for_status()
-            result = response.json()
-            
-            # Parse the JSON response
-            content = result['choices'][0]['message']['content']
-            # Clean up markdown if present
-            if content.startswith('```json'):
-                content = content[7:-3]
-            elif content.startswith('```'):
-                content = content[3:-3]
-            
-            ideas = json.loads(content)
-            return ideas
-            
-        except Exception as e:
-            print(f"Error generating ideas: {e}")
-            return []
-    
-    def generate_captions(self, idea, platforms=['facebook', 'instagram', 'line']):
-        """Generate platform-specific captions for an idea"""
-        
-        captions = {}
-        
-        platform_prompts = {
-            'facebook': "Write a Facebook post. Professional but friendly. Include emojis. Max 500 chars.",
-            'instagram': "Write an Instagram caption. Inspiring, use emojis, include 5 relevant hashtags. Max 2200 chars.",
-            'line': "Write a LINE OA message. Short, personal, conversational. Max 200 chars. Include call-to-action."
-        }
-        
-        for platform in platforms:
-            prompt = f"""Idea: {idea['title']} - {idea['core_message']}
-            
-{platform_prompts[platform]}
 
-Return only the caption text, no explanations."""
-            
-            headers = {
-                "Authorization": f"Bearer {self.github_token}",
-                "Content-Type": "application/json"
-            }
-            
-            payload = {
-                "model": "gpt-4o-mini",
-                "messages": [
-                    {"role": "user", "content": prompt}
-                ],
-                "temperature": 0.7,
-                "max_tokens": 500
-            }
-            
-            try:
-                response = requests.post(self.api_url, headers=headers, json=payload)
-                result = response.json()
-                captions[platform] = result['choices'][0]['message']['content'].strip()
-            except Exception as e:
-                print(f"Error generating caption for {platform}: {e}")
-                captions[platform] = idea['core_message']
+    try:
+        # === Replace this section with your actual LLM call ===
+        # Example using OpenAI / Grok / GitHub Models client:
         
-        return captions
-    
-    def generate_hashtags(self, topic, count=10):
-        """Generate relevant hashtags"""
+        # from openai import OpenAI
+        # client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))   # or GITHUB token
         
-        prompt = f"""Generate {count} relevant Thai fitness hashtags for: {topic}
+        # response = client.chat.completions.create(
+        #     model=MODEL,
+        #     messages=[{"role": "user", "content": prompt}],
+        #     temperature=0.8
+        # )
         
-Return as a comma-separated list with # symbol.
-Mix Thai and English tags."""
+        # content = response.choices[0].message.content.strip()
+        # posts = json.loads(content)
         
-        headers = {
-            "Authorization": f"Bearer {self.github_token}",
-            "Content-Type": "application/json"
-        }
+        # === For now: Placeholder (replace with real AI call) ===
+        print("🤖 Generating posts using AI...")
         
-        payload = {
-            "model": "gpt-4o-mini",
-            "messages": [{"role": "user", "content": prompt}],
-            "temperature": 0.5,
-            "max_tokens": 200
-        }
+        # Temporary mock data (remove after you connect real AI)
+        posts = []
+        today = datetime.now()
         
-        try:
-            response = requests.post(self.api_url, headers=headers, json=payload)
-            result = response.json()
-            return result['choices'][0]['message']['content'].strip()
-        except:
-            return "#fitness #thailand #workout #health #wellness"
+        for i in range(NUM_POSTS):
+            post_date = (today + timedelta(days=i+1)).strftime("%Y-%m-%d 09:00")
+            posts.append({
+                "title": f"Motivation Day {i+1} - {NICHE}",
+                "post_date": post_date,
+                "platform": PLATFORMS,
+                "caption": f"✨ Start your day with positive energy! Day {i+1} of fitness journey. "
+                           f"Consistency is the key to success 💪 #Fitness #Yoga #Motivation",
+                "image_urls": "",
+                "link": "",
+                "status": "pending"
+            })
+        
+        # ========================================================
+        
+        print(f"✅ Generated {len(posts)} posts successfully.")
+        return posts
 
-# Test function
+    except Exception as e:
+        print(f"❌ Error generating posts: {e}")
+        return []
+
+
+def main():
+    print("🚀 Starting Social Injector AI Generator...")
+    
+    new_posts = generate_posts_with_ai()
+    
+    if new_posts:
+        append_to_csv(new_posts)
+        print("🎉 All posts have been saved to social/posts.csv with status 'pending'.")
+        print(f"Total posts in CSV now ready for review in the dashboard.")
+    else:
+        print("⚠️ No posts were generated.")
+
+
 if __name__ == "__main__":
-    generator = AIContentGenerator()
-    
-    print("🎯 Testing AI Content Generator")
-    print("-" * 40)
-    
-    # Generate 3 ideas
-    ideas = generator.generate_ideas("fitness motivation", count=3)
-    
-    for i, idea in enumerate(ideas):
-        print(f"\n💡 Idea {i+1}: {idea.get('title', 'Untitled')}")
-        print(f"   Hook: {idea.get('hook', 'N/A')}")
-        print(f"   Message: {idea.get('core_message', 'N/A')[:100]}...")
-        
-        # Generate captions for this idea
-        captions = generator.generate_captions(idea)
-        print(f"   📘 FB Caption: {captions.get('facebook', 'N/A')[:80]}...")
+    main()
