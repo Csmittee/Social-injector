@@ -2,10 +2,7 @@
 """
 update_status.py
 Updates the 'status' field of a post in social/posts.csv by exact title match.
-
-Called by .github/workflows/update-status.yml
-Usage:
-    python scripts/update_status.py --title "My Post Title" --status approved
+Exits with error code 1 if title not found OR if status is already the same.
 """
 
 import argparse
@@ -31,7 +28,7 @@ def update_status(title: str, new_status: str) -> None:
         sys.exit(1)
 
     with open(CSV_PATH, "r", encoding="utf-8", newline="") as f:
-        reader    = csv.DictReader(f)
+        reader     = csv.DictReader(f)
         fieldnames = reader.fieldnames
         if not fieldnames:
             print("ERROR: CSV is empty or has no headers.", file=sys.stderr)
@@ -45,11 +42,18 @@ def update_status(title: str, new_status: str) -> None:
     matched = False
     for row in rows:
         if row.get("title", "").strip() == title:
-            old_status  = row["status"]
+            old_status = row["status"].strip().lower()
+
+            # Warn and exit cleanly if already the same — so git sees no change intentionally
+            if old_status == new_status:
+                print(f"WARNING: '{title}' is already '{new_status}'. No change made.")
+                print("NO_CHANGE")  # sentinel for the workflow to detect
+                sys.exit(0)
+
             row["status"] = new_status
-            matched     = True
+            matched = True
             print(f"Updated: '{title}'  {old_status} -> {new_status}")
-            break  # first match only
+            break
 
     if not matched:
         print(f"ERROR: No post found with title: '{title}'", file=sys.stderr)
