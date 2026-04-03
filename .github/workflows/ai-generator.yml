@@ -4,14 +4,20 @@ on:
   workflow_dispatch:
     inputs:
       prompt:
-        description: "AI generation prompt"
+        description: "Your content brief / prompt for AI"
         required: true
       count:
         description: "Number of posts to generate"
         required: true
         default: "5"
+        type: choice
+        options:
+          - "3"
+          - "5"
+          - "7"
+          - "10"
       platforms:
-        description: "Comma-separated platforms: Facebook,Instagram,Line"
+        description: "Platforms (comma-separated): Facebook,Instagram,Line"
         required: true
         default: "Facebook,Instagram"
 
@@ -33,22 +39,25 @@ jobs:
           python-version: "3.11"
 
       - name: Install dependencies
-        run: |
-          pip install anthropic
+        run: pip install anthropic
 
-      - name: Generate posts and append to CSV
+      - name: Generate posts
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-        run: |
-          python scripts/ai_generator.py \
-            --prompt "${{ github.event.inputs.prompt }}" \
-            --count "${{ github.event.inputs.count }}" \
-            --platforms "${{ github.event.inputs.platforms }}"
+          PROMPT:     ${{ github.event.inputs.prompt }}
+          COUNT:      ${{ github.event.inputs.count }}
+          PLATFORMS:  ${{ github.event.inputs.platforms }}
+        run: python scripts/ai_generator.py
 
       - name: Commit new posts
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+          git pull --rebase origin main || true
           git add social/posts.csv
-          git diff --cached --quiet || git commit -m "feat: AI generated ${{ github.event.inputs.count }} new post(s)"
-          git push
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "feat: AI generated ${{ github.event.inputs.count }} post(s) — ${{ github.event.inputs.prompt }}"
+            git push origin main
+          fi
