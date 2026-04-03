@@ -189,7 +189,7 @@
     document.getElementById("statApproved").textContent = count("approved");
     document.getElementById("statPosted").textContent   = count("posted");
     document.getElementById("statRejected").textContent = count("rejected");
-    document.getElementById("statTotal").textContent    = allPosts.length;
+    document.getElementById("statTotal").textContent = pending + approved + posted + rejected;
   }
 
   // ── RENDER ────────────────────────────────────────────────────────────────
