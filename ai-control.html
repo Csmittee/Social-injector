@@ -137,9 +137,9 @@
       document.getElementById("tokenInput").value = t.slice(0, 4) + "••••••••••••";
       document.getElementById("tokenSection").classList.add("ok");
       document.getElementById("tokenSection").querySelector("label").textContent = "✅ Token loaded from session";
+      document.getElementById("tokenSection").style.display = "none"; // ADD THIS
     }
   }
-
   // ── GENERATE ───────────────────────────────────────────────────────────────
   async function generatePosts() {
     const token = getToken();
