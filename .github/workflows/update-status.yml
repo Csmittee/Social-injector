@@ -7,8 +7,14 @@ on:
         description: "Exact post title to update"
         required: true
       status:
-        description: "New status: approved | rejected | posted"
+        description: "New status"
         required: true
+        type: choice
+        options:
+          - approved
+          - rejected
+          - posted
+          - pending
 
 jobs:
   update-status:
@@ -37,6 +43,11 @@ jobs:
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+          git pull --rebase origin main || true
           git add social/posts.csv
-          git diff --cached --quiet || git commit -m "chore: update status of '${{ github.event.inputs.title }}' → ${{ github.event.inputs.status }}"
-          git push
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "chore: '${{ github.event.inputs.title }}' -> ${{ github.event.inputs.status }}"
+            git push origin main
+          fi
