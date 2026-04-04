@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
 """
 update_status.py
-Updates the 'status' field of a post in social/posts.csv by exact title match.
-Exits with error code 1 if title not found OR if status is already the same.
+Updates status of ONE OR MORE posts in social/posts.csv in a single run.
+
+Called by .github/workflows/update-status.yml
+Usage:
+    python scripts/update_status.py --changes "Title 1:approved,Title 2:rejected,Title 3:approved"
 """
 
 import argparse
@@ -12,17 +15,12 @@ import sys
 
 CSV_PATH       = "social/posts.csv"
 VALID_STATUSES = {"pending", "approved", "rejected", "posted"}
-FIELDNAMES     = ["title", "post_date", "platform", "caption", "image_urls", "link", "status"]
 
 
-def update_status(title: str, new_status: str) -> None:
-    title      = title.strip()
-    new_status = new_status.strip().lower()
-
-    if new_status not in VALID_STATUSES:
-        print(f"ERROR: invalid status '{new_status}'. Must be one of {VALID_STATUSES}", file=sys.stderr)
-        sys.exit(1)
-
+def update_statuses(changes: dict) -> None:
+    """
+    changes = { "Post Title": "approved", "Other Title": "rejected", ... }
+    """
     if not os.path.exists(CSV_PATH):
         print(f"ERROR: {CSV_PATH} not found.", file=sys.stderr)
         sys.exit(1)
@@ -31,48 +29,101 @@ def update_status(title: str, new_status: str) -> None:
         reader     = csv.DictReader(f)
         fieldnames = reader.fieldnames
         if not fieldnames:
-            print("ERROR: CSV is empty or has no headers.", file=sys.stderr)
+            print("ERROR: CSV is empty.", file=sys.stderr)
             sys.exit(1)
         rows = list(reader)
 
     if "title" not in fieldnames or "status" not in fieldnames:
-        print(f"ERROR: CSV must have 'title' and 'status' columns. Found: {fieldnames}", file=sys.stderr)
+        print(f"ERROR: CSV must have 'title' and 'status' columns.", file=sys.stderr)
         sys.exit(1)
 
-    matched = False
+    updated   = []
+    not_found = []
+
+    # Track which titles we still need to match
+    pending_changes = dict(changes)
+
     for row in rows:
-        if row.get("title", "").strip() == title:
-            old_status = row["status"].strip().lower()
+        title = row.get("title", "").strip()
+        if title in pending_changes:
+            new_status = pending_changes[title]
+            old_status = row["status"].strip()
+            if old_status != new_status:
+                row["status"] = new_status
+                updated.append(f"  '{title}'  {old_status} -> {new_status}")
+            else:
+                updated.append(f"  '{title}'  already {new_status} (no change)")
+            del pending_changes[title]  # mark as matched
 
-            # Warn and exit cleanly if already the same — so git sees no change intentionally
-            if old_status == new_status:
-                print(f"WARNING: '{title}' is already '{new_status}'. No change made.")
-                print("NO_CHANGE")  # sentinel for the workflow to detect
-                sys.exit(0)
+    # Anything left in pending_changes was not found
+    not_found = list(pending_changes.keys())
 
-            row["status"] = new_status
-            matched = True
-            print(f"Updated: '{title}'  {old_status} -> {new_status}")
-            break
+    # Report
+    print(f"Processing {len(changes)} status change(s):")
+    for u in updated:
+        print(u)
+    if not_found:
+        print(f"\nWARNING: {len(not_found)} title(s) not found in CSV:")
+        for t in not_found:
+            print(f"  - '{t}'")
 
-    if not matched:
-        print(f"ERROR: No post found with title: '{title}'", file=sys.stderr)
-        print("Available titles:", file=sys.stderr)
-        for r in rows:
-            print(f"  - {r.get('title', '')}", file=sys.stderr)
+    if not updated and not_found:
+        print("ERROR: No posts were updated.", file=sys.stderr)
         sys.exit(1)
 
+    # Write back
     with open(CSV_PATH, "w", encoding="utf-8", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=fieldnames, quoting=csv.QUOTE_MINIMAL)
         writer.writeheader()
         writer.writerows(rows)
 
-    print(f"CSV saved: {CSV_PATH}")
+    print(f"\nCSV saved: {CSV_PATH} ({len(updated)} update(s))")
+
+
+def parse_changes(changes_str: str) -> dict:
+    """
+    Parse "Title 1:approved,Title 2:rejected" into a dict.
+    Handles titles that contain commas by using | as separator between pairs.
+    Format: "title1::status1||title2::status2"
+    """
+    changes = {}
+    # Use || as pair separator and :: as title:status separator
+    pairs = changes_str.split("||")
+    for pair in pairs:
+        pair = pair.strip()
+        if "::" not in pair:
+            print(f"WARNING: Skipping malformed pair: '{pair}'", file=sys.stderr)
+            continue
+        # Split on LAST :: to handle titles with :: in them
+        idx    = pair.rfind("::")
+        title  = pair[:idx].strip()
+        status = pair[idx+2:].strip().lower()
+        if not title:
+            continue
+        if status not in VALID_STATUSES:
+            print(f"WARNING: Invalid status '{status}' for '{title}' — skipping.", file=sys.stderr)
+            continue
+        changes[title] = status
+
+    return changes
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--title",  required=True)
-    parser.add_argument("--status", required=True)
-    args = parser.parse_args()
-    update_status(args.title, args.status)
+    parser.add_argument(
+        "--changes", required=True,
+        help='Format: "Title 1::approved||Title 2::rejected||Title 3::approved"'
+    )
+    args    = parser.parse_args()
+    changes = parse_changes(args.changes)
+
+    if not changes:
+        print("ERROR: No valid changes to process.", file=sys.stderr)
+        sys.exit(1)
+
+    print(f"Parsed {len(changes)} change(s):")
+    for t, s in changes.items():
+        print(f"  '{t}' -> {s}")
+    print()
+
+    update_statuses(changes)
