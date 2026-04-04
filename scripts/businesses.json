@@ -1,0 +1,99 @@
+{
+  "businesses": [
+    {
+      "id": "iflex",
+      "name": "I-Flex Thailand",
+      "niche": "Pilates equipment import and sales — reformers, accessories, studio gear for home and professional studios",
+      "language": "Thai + English mix",
+      "platforms": ["Facebook", "Instagram", "Line"],
+      "social": {
+        "facebook_page": "https://www.facebook.com/iflexthailand",
+        "facebook_group": "https://www.facebook.com/groups/iflexthailand",
+        "instagram": "https://www.instagram.com/i_flexthai/",
+        "instagram_handle": "@i_flexthai",
+        "line_oa": "@208czucv"
+      },
+      "website": "https://i-flexthailand.com/",
+      "booking_url": "https://i-flexthailand.com/",
+      "qr_codes": {
+        "facebook_page": "https://res.cloudinary.com/dfiomi0lb/image/upload/q_auto/f_auto/v1775064425/I-Flex_FB_page_qr-code.png",
+        "facebook_group": "https://res.cloudinary.com/dfiomi0lb/image/upload/q_auto/f_auto/v1775064426/I-Flex_FB_group_qr-code.png",
+        "instagram": "https://res.cloudinary.com/dfiomi0lb/image/upload/q_auto/f_auto/v1775064425/I-Flex_instagram_qr-code.png",
+        "line_oa": "https://res.cloudinary.com/dfiomi0lb/image/upload/q_auto/f_auto/v1774899870/I-flex_line_OA.png"
+      },
+      "hashtags": "#IFlexThailand #Pilates #พิลาทิส #PilatesThailand #ReformerPilates #PilatesEquipment #สตูดิโอพิลาทิส #ออกกำลังกาย #HealthyLifestyle"
+    },
+    {
+      "id": "janisflow",
+      "name": "Janis Flow Lifestyle",
+      "niche": "Skateboard, longboard, and all outdoor board sports — lifestyle and culture brand in Thailand",
+      "language": "Thai + English mix",
+      "platforms": ["Facebook", "Instagram", "Line"],
+      "social": {
+        "facebook_page": "https://www.facebook.com/janislifestyle",
+        "instagram": "https://www.instagram.com/janisflowlifestyle/",
+        "instagram_handle": "@janisflowlifestyle",
+        "line_oa": "@972rpdxd"
+      },
+      "website": "https://flow.janishammer.com/",
+      "booking_url": "https://flow.janishammer.com/",
+      "qr_codes": {
+        "facebook_page": "https://res.cloudinary.com/dfiomi0lb/image/upload/q_auto/f_auto/v1775064393/Flow_FB_page_qr-code.png",
+        "instagram": "https://res.cloudinary.com/dfiomi0lb/image/upload/q_auto/f_auto/v1775064393/Flow_instagram_qr-code.png"
+      },
+      "hashtags": "#JanisFlow #Skateboard #สเก็ตบอร์ด #Longboard #BoardSports #OutdoorSports #สเก็ต #FlowLifestyle #ThaiSkate #RideThailand"
+    },
+    {
+      "id": "daje",
+      "name": "Daje Queen Catcher",
+      "niche": "Claw machines and vending game machines — entertainment, amusement, and fun experiences",
+      "language": "Thai + English mix",
+      "platforms": ["Facebook", "Instagram", "Line"],
+      "social": {
+        "facebook_page": "https://www.facebook.com/dajequeencatcher",
+        "instagram": "https://www.instagram.com/dajequeencatcher/",
+        "instagram_handle": "@dajequeencatcher",
+        "line_oa": "@142itevi"
+      },
+      "website": "https://daje.janishammer.com/",
+      "booking_url": "https://daje.janishammer.com/",
+      "qr_codes": {
+        "facebook_page": "https://res.cloudinary.com/dfiomi0lb/image/upload/q_auto/f_auto/v1775064346/Daje_FB_page_qr-code.png",
+        "instagram": "https://res.cloudinary.com/dfiomi0lb/image/upload/q_auto/f_auto/v1775064346/Daje_instagram_qr-code.png"
+      },
+      "hashtags": "#Daje #DajeQueenCatcher #ตู้คีบ #ClawMachine #เกมตู้ #VendingGame #ตู้คีบของเล่น #ClawGame #สนุก #Thailand"
+    },
+    {
+      "id": "outride",
+      "name": "Outride Thailand",
+      "niche": "Outdoor board sports — riding culture, events, and community in Thailand. Part of Janis Flow family.",
+      "language": "Thai + English mix",
+      "platforms": ["Facebook", "Instagram"],
+      "social": {
+        "facebook_page": "https://www.facebook.com/outridethailand",
+        "instagram": "https://www.instagram.com/outridethailand/",
+        "instagram_handle": "@outridethailand"
+      },
+      "website": "https://flow.janishammer.com/",
+      "booking_url": "https://flow.janishammer.com/",
+      "qr_codes": {},
+      "hashtags": "#OutrideThailand #Outride #RidingCulture #BoardSports #สเก็ตบอร์ด #Skateboard #OutdoorThailand #RideThailand #ThaiRiders"
+    }
+  ],
+
+  "_upcoming": {
+    "note": "Add these when ready",
+    "businesses": [
+      {
+        "id": "jadecoffee",
+        "name": "Jade Coffee",
+        "niche": "New coffee business — details TBD"
+      },
+      {
+        "id": "janishammer",
+        "name": "Janis Hammer",
+        "niche": "Company umbrella brand — introducing new products and ventures to market, not tied to specific child businesses"
+      }
+    ]
+  }
+}
