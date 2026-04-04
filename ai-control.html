@@ -8,11 +8,9 @@
     * { box-sizing: border-box; }
     body { font-family: 'Segoe UI', Arial, sans-serif; margin: 0; padding: 20px; background: #f0f2f5; }
     .container { max-width: 900px; margin: auto; background: white; padding: 28px; border-radius: 12px; box-shadow: 0 2px 15px rgba(0,0,0,0.1); }
-
     .nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 2px solid #eee; flex-wrap: wrap; gap: 10px; }
     .nav h1 { margin: 0; font-size: 22px; }
 
-    /* Token section */
     #tokenSection { background: #fff3cd; border: 1px solid #ffc107; border-radius: 8px; padding: 14px 18px; margin-bottom: 22px; }
     #tokenSection.ok { background: #d4edda; border-color: #28a745; }
     #tokenSection label { font-weight: 600; color: #856404; display: block; margin-bottom: 8px; }
@@ -20,19 +18,26 @@
     .token-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
     #tokenInput { flex: 1; min-width: 220px; padding: 9px 12px; border: 1px solid #ffc107; border-radius: 6px; font-size: 14px; font-family: monospace; }
     #tokenSection.ok #tokenInput { border-color: #28a745; background: #f0fff4; }
-    #tokenSaveBtn { background: #ffc107; color: #333; border: none; border-radius: 6px; padding: 9px 18px; font-weight: bold; cursor: pointer; white-space: nowrap; }
+    #tokenSaveBtn { background: #ffc107; color: #333; border: none; border-radius: 6px; padding: 9px 18px; font-weight: bold; cursor: pointer; }
     #tokenSaveBtn:hover { background: #e0a800; }
-    #tokenNote { font-size: 12px; color: #666; margin-top: 6px; }
 
     .form-group { margin-bottom: 20px; }
     label.field-label { display: block; margin-bottom: 8px; font-weight: 600; color: #333; font-size: 15px; }
     textarea, select { width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 15px; font-family: inherit; transition: border-color 0.2s; }
     textarea:focus, select:focus { outline: none; border-color: #6f42c1; }
-    textarea { min-height: 160px; resize: vertical; }
+    textarea { min-height: 140px; resize: vertical; }
 
-    .platforms { display: flex; gap: 24px; flex-wrap: wrap; margin-top: 4px; }
+    /* Business selector cards */
+    .biz-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 10px; margin-top: 6px; }
+    .biz-card { border: 2px solid #ddd; border-radius: 10px; padding: 14px; cursor: pointer; transition: all 0.15s; text-align: center; background: #fafafa; }
+    .biz-card:hover { border-color: #6f42c1; background: #f3eeff; }
+    .biz-card.selected { border-color: #6f42c1; background: #f3eeff; box-shadow: 0 0 0 3px rgba(111,66,193,0.15); }
+    .biz-card .biz-icon { font-size: 28px; margin-bottom: 6px; }
+    .biz-card .biz-name { font-weight: 700; font-size: 14px; color: #333; }
+    .biz-card .biz-desc { font-size: 11px; color: #888; margin-top: 3px; }
+
+    .platforms { display: flex; gap: 20px; flex-wrap: wrap; margin-top: 6px; }
     .platforms label { display: flex; align-items: center; gap: 8px; font-size: 15px; cursor: pointer; }
-    .platforms input[type=checkbox] { width: 16px; height: 16px; cursor: pointer; }
 
     .btn { padding: 10px 22px; margin: 4px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 14px; transition: opacity 0.15s; }
     .btn:hover { opacity: 0.85; }
@@ -41,14 +46,13 @@
     .btn-refresh { background: #17a2b8; color: white; }
     .btn-generate { background: #28a745; color: white; padding: 14px 32px; font-size: 17px; width: 100%; margin-top: 8px; border-radius: 8px; }
 
-    .status-box { margin-top: 18px; padding: 14px 18px; border-radius: 8px; display: none; font-size: 15px; line-height: 1.6; }
+    .status-box { margin-top: 18px; padding: 14px 18px; border-radius: 8px; display: none; font-size: 15px; line-height: 1.6; white-space: pre-wrap; }
     .status-box.success { background: #d4edda; color: #155724; display: block; }
     .status-box.error   { background: #f8d7da; color: #721c24; display: block; }
     .status-box.info    { background: #cce5ff; color: #004085; display: block; }
 
     .spinner { display: inline-block; width: 16px; height: 16px; border: 3px solid rgba(255,255,255,0.4); border-top-color: white; border-radius: 50%; animation: spin 0.8s linear infinite; vertical-align: middle; margin-right: 8px; }
     @keyframes spin { to { transform: rotate(360deg); } }
-
     .hint { font-size: 12px; color: #888; margin-top: 5px; }
   </style>
 </head>
@@ -63,29 +67,54 @@
     </div>
   </div>
 
-  <!-- Token Section -->
+  <!-- Token -->
   <div id="tokenSection">
-    <label>🔑 GitHub PAT Token (required to trigger AI generation)</label>
+    <label>🔑 GitHub PAT Token (fine-grained, required)</label>
     <div class="token-row">
-      <input type="password" id="tokenInput" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" autocomplete="off">
+      <input type="password" id="tokenInput" placeholder="github_pat_xxxxxxxxxxxxxxxxxxxx" autocomplete="off">
       <button id="tokenSaveBtn" onclick="saveToken()">Save Token</button>
     </div>
-    <div id="tokenNote" class="hint">
-      Token needs <strong>repo</strong> + <strong>actions:write</strong> scopes.
-      It's only stored in your browser session — never sent anywhere except GitHub's API.
+    <div class="hint">Needs Contents + Actions write permission on this repo. Stored in browser session only.</div>
+  </div>
+
+  <!-- Business Selector -->
+  <div class="form-group">
+    <label class="field-label">Select Business</label>
+    <div class="biz-grid" id="bizGrid">
+      <div class="biz-card selected" data-id="iflex" onclick="selectBiz(this)">
+        <div class="biz-icon">🧘</div>
+        <div class="biz-name">I-Flex Thailand</div>
+        <div class="biz-desc">Pilates equipment</div>
+      </div>
+      <div class="biz-card" data-id="janisflow" onclick="selectBiz(this)">
+        <div class="biz-icon">🛹</div>
+        <div class="biz-name">Janis Flow</div>
+        <div class="biz-desc">Skateboard & board sports</div>
+      </div>
+      <div class="biz-card" data-id="daje" onclick="selectBiz(this)">
+        <div class="biz-icon">🎮</div>
+        <div class="biz-name">Daje Queen Catcher</div>
+        <div class="biz-desc">Claw & vending machines</div>
+      </div>
+      <div class="biz-card" data-id="outride" onclick="selectBiz(this)">
+        <div class="biz-icon">🏄</div>
+        <div class="biz-name">Outride Thailand</div>
+        <div class="biz-desc">Outdoor board sports</div>
+      </div>
     </div>
+    <input type="hidden" id="selectedBizId" value="iflex">
   </div>
 
   <!-- Prompt -->
   <div class="form-group">
-    <label class="field-label">Your Prompt / Guideline for AI</label>
-    <textarea id="promptInput" placeholder="Example: Generate 5 motivational yoga posts for beginners in Thai + English, focus on morning routine, include a CTA to book a class..."></textarea>
+    <label class="field-label">Content Brief for AI</label>
+    <textarea id="promptInput" placeholder="Example: Create 5 posts about the benefits of Pilates reformer for beginners, highlight how I-Flex equipment is studio quality..."></textarea>
     <div class="hint">Shift+Enter for new lines. Enter to generate.</div>
   </div>
 
   <!-- Count -->
   <div class="form-group">
-    <label class="field-label">Number of Posts to Generate</label>
+    <label class="field-label">Number of Posts</label>
     <select id="countInput">
       <option value="3">3 posts</option>
       <option value="5" selected>5 posts</option>
@@ -100,7 +129,7 @@
     <div class="platforms">
       <label><input type="checkbox" value="Facebook" checked> Facebook</label>
       <label><input type="checkbox" value="Instagram" checked> Instagram</label>
-      <label><input type="checkbox" value="Line"> Line</label>
+      <label><input type="checkbox" value="Line"> Line OA</label>
     </div>
   </div>
 
@@ -113,14 +142,12 @@
 </div>
 
 <script>
-  const REPO_OWNER   = "Csmittee";
-  const REPO_NAME    = "social-injector";
-  const WORKFLOW_AI  = "ai-generator.yml";  // must match your workflow filename
+  const REPO_OWNER  = "Csmittee";
+  const REPO_NAME   = "social-injector";
+  const WORKFLOW_AI = "ai-generator.yml";
 
-  // ── TOKEN ──────────────────────────────────────────────────────────────────
-  function getToken() {
-    return sessionStorage.getItem("gh_pat") || "";
-  }
+  // ── TOKEN ──────────────────────────────────────────────────────────────
+  function getToken() { return sessionStorage.getItem("gh_pat") || ""; }
 
   function saveToken() {
     const val = document.getElementById("tokenInput").value.trim();
@@ -128,82 +155,88 @@
     sessionStorage.setItem("gh_pat", val);
     document.getElementById("tokenSection").classList.add("ok");
     document.getElementById("tokenSection").querySelector("label").textContent = "✅ Token saved for this session";
-    showStatus("Token saved. You can now generate posts.", "success");
+    document.getElementById("tokenSection").style.display = "none";
+    showStatus("Token saved.", "success");
   }
 
   function checkToken() {
     const t = getToken();
     if (t) {
-      document.getElementById("tokenInput").value = t.slice(0, 4) + "••••••••••••";
+      document.getElementById("tokenInput").value = t.slice(0, 8) + "••••••••";
       document.getElementById("tokenSection").classList.add("ok");
       document.getElementById("tokenSection").querySelector("label").textContent = "✅ Token loaded from session";
-      document.getElementById("tokenSection").style.display = "none"; // ADD THIS
+      document.getElementById("tokenSection").style.display = "none";
     }
   }
-  // ── GENERATE ───────────────────────────────────────────────────────────────
+
+  // ── BUSINESS SELECTOR ──────────────────────────────────────────────────
+  function selectBiz(card) {
+    document.querySelectorAll(".biz-card").forEach(c => c.classList.remove("selected"));
+    card.classList.add("selected");
+    document.getElementById("selectedBizId").value = card.getAttribute("data-id");
+  }
+
+  // ── GENERATE ───────────────────────────────────────────────────────────
   async function generatePosts() {
     const token = getToken();
     if (!token) {
       showStatus("❌ Please enter your GitHub PAT token first.", "error");
+      document.getElementById("tokenSection").style.display = "block";
       return;
     }
 
-    const prompt = document.getElementById("promptInput").value.trim();
-    if (!prompt) {
-      showStatus("❌ Please enter a prompt or guideline for the AI.", "error");
-      return;
-    }
+    const prompt     = document.getElementById("promptInput").value.trim();
+    const count      = document.getElementById("countInput").value;
+    const businessId = document.getElementById("selectedBizId").value;
+    const platforms  = Array.from(document.querySelectorAll(".platforms input:checked"))
+                           .map(cb => cb.value).join(",");
 
-    const count = document.getElementById("countInput").value;
-    const platforms = Array.from(document.querySelectorAll(".platforms input:checked"))
-      .map(cb => cb.value).join(",");
+    if (!prompt)     { showStatus("❌ Please enter a content brief.", "error"); return; }
+    if (!platforms)  { showStatus("❌ Please select at least one platform.", "error"); return; }
+    if (!businessId) { showStatus("❌ Please select a business.", "error"); return; }
 
-    if (!platforms) {
-      showStatus("❌ Please select at least one platform.", "error");
-      return;
-    }
-
-    // Disable button, show spinner
     const btn = document.getElementById("generateBtn");
     btn.disabled = true;
     btn.innerHTML = '<span class="spinner"></span> Sending to GitHub Actions...';
-    showStatus("⏳ Triggering AI generation workflow... please wait.", "info");
+    showStatus(`⏳ Triggering AI generation for ${businessId}...`, "info");
 
     try {
-      const url = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/actions/workflows/${WORKFLOW_AI}/dispatches`;
-      const res = await fetch(url, {
-        method: "POST",
-        headers: {
-          "Accept": "application/vnd.github.v3+json",
-          "Authorization": `Bearer ${token}`,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          ref: "main",
-          inputs: {
-            prompt:    prompt,
-            count:     String(count),
-            platforms: platforms
-          }
-        })
-      });
+      const res = await fetch(
+        `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/actions/workflows/${WORKFLOW_AI}/dispatches`,
+        {
+          method: "POST",
+          headers: {
+            "Accept": "application/vnd.github.v3+json",
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            ref: "main",
+            inputs: {
+              business_id: businessId,
+              prompt:      prompt,
+              count:       String(count),
+              platforms:   platforms
+            }
+          })
+        }
+      );
 
       if (res.status === 204) {
-        // SUCCESS — workflow was triggered
         showStatus(
-          `✅ AI generation started! GitHub Actions will generate ${count} post(s) for [${platforms}] and append them to posts.csv.\n\n` +
-          `⏱ This usually takes 30–60 seconds. Then go to the Dashboard and click Refresh to see the new pending posts.`,
+          `✅ AI generation started for ${businessId}!\n\n` +
+          `Generating ${count} post(s) for [${platforms}]\n\n` +
+          `⏱ Takes ~30-60 seconds. Then go to Dashboard → Refresh to see new pending posts.`,
           "success"
         );
         document.getElementById("promptInput").value = "";
       } else if (res.status === 401) {
-        showStatus("❌ Invalid or expired GitHub token. Please re-enter your PAT.", "error");
+        showStatus("❌ Invalid or expired token. Please re-enter your GitHub PAT.", "error");
         sessionStorage.removeItem("gh_pat");
+        document.getElementById("tokenSection").style.display = "block";
         document.getElementById("tokenSection").classList.remove("ok");
       } else if (res.status === 404) {
-        showStatus(`❌ Workflow '${WORKFLOW_AI}' not found. Make sure the file exists in .github/workflows/ and has 'workflow_dispatch' trigger with inputs: prompt, count, platforms.`, "error");
-      } else if (res.status === 422) {
-        showStatus("❌ Workflow inputs mismatch — check your workflow's 'inputs' section matches: prompt, count, platforms.", "error");
+        showStatus(`❌ Workflow '${WORKFLOW_AI}' not found. Make sure it's committed to .github/workflows/`, "error");
       } else {
         const body = await res.text();
         showStatus(`❌ GitHub API error ${res.status}: ${body}`, "error");
@@ -216,22 +249,16 @@
     }
   }
 
-  // ── UI HELPERS ──────────────────────────────────────────────────────────────
   function showStatus(msg, type) {
     const el = document.getElementById("statusBox");
     el.textContent = msg;
     el.className = `status-box ${type}`;
   }
 
-  // Enter in textarea triggers generate (Shift+Enter = newline)
   document.getElementById("promptInput").addEventListener("keydown", function(e) {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      generatePosts();
-    }
+    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); generatePosts(); }
   });
 
-  // ── INIT ───────────────────────────────────────────────────────────────────
   checkToken();
 </script>
 </body>
