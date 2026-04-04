@@ -9,14 +9,12 @@
     body { font-family: 'Segoe UI', Arial, sans-serif; margin: 0; padding: 20px; background: #f0f2f5; }
     .container { max-width: 1200px; margin: auto; background: white; padding: 24px; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.1); }
 
-    /* Token Banner */
     #tokenBanner { background: #fff3cd; border: 1px solid #ffc107; border-radius: 8px; padding: 14px 18px; margin-bottom: 20px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
     #tokenBanner.hidden { display: none; }
     #tokenBanner label { font-weight: 600; color: #856404; white-space: nowrap; }
     #tokenInput { flex: 1; min-width: 220px; padding: 8px 12px; border: 1px solid #ffc107; border-radius: 6px; font-size: 14px; font-family: monospace; }
     #tokenSaveBtn { background: #ffc107; color: #333; border: none; border-radius: 6px; padding: 8px 16px; font-weight: bold; cursor: pointer; white-space: nowrap; }
     #tokenSaveBtn:hover { background: #e0a800; }
-    #tokenStatus { font-size: 13px; color: #856404; }
 
     h1 { text-align: center; margin: 0 0 16px; font-size: 26px; }
     .nav { text-align: center; margin-bottom: 20px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
@@ -25,7 +23,7 @@
     .stat-number { font-size: 2em; font-weight: bold; color: #333; }
     .stat-label { font-size: 13px; color: #666; margin-top: 4px; }
 
-    .tabs { display: flex; flex-wrap: wrap; gap: 6px; margin: 20px 0 0; border-bottom: 2px solid #ddd; padding-bottom: 0; }
+    .tabs { display: flex; flex-wrap: wrap; gap: 6px; margin: 20px 0 0; border-bottom: 2px solid #ddd; }
     .tab { padding: 9px 18px; background: #f1f1f1; border-radius: 6px 6px 0 0; cursor: pointer; border: 1px solid #ddd; border-bottom: none; font-size: 14px; transition: background 0.15s; }
     .tab:hover { background: #e0e0e0; }
     .tab.active { background: #007bff; color: white; border-color: #007bff; }
@@ -45,30 +43,27 @@
     .btn { padding: 8px 16px; margin: 4px 4px 0 0; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 13px; transition: opacity 0.15s; }
     .btn:hover { opacity: 0.85; }
     .btn:disabled { opacity: 0.5; cursor: not-allowed; }
-    .btn-approve  { background: #28a745; color: white; }
-    .btn-reject   { background: #dc3545; color: white; }
-    .btn-ai       { background: #6f42c1; color: white; padding: 10px 22px; font-size: 15px; }
-    .btn-refresh  { background: #17a2b8; color: white; padding: 10px 22px; font-size: 15px; }
+    .btn-approve { background: #28a745; color: white; }
+    .btn-reject  { background: #dc3545; color: white; }
+    .btn-ai      { background: #6f42c1; color: white; padding: 10px 22px; font-size: 15px; }
+    .btn-refresh { background: #17a2b8; color: white; padding: 10px 22px; font-size: 15px; }
 
     .loading { text-align: center; padding: 40px; color: #666; font-size: 16px; }
     .error-msg { color: #dc3545; background: #f8d7da; border-radius: 6px; padding: 12px; margin: 10px 0; }
 
-    /* Toast notification */
-    #toast { position: fixed; bottom: 24px; right: 24px; background: #333; color: white; padding: 12px 20px; border-radius: 8px; font-size: 14px; display: none; z-index: 9999; max-width: 320px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
-    #toast.success { background: #28a745; }
-    #toast.error   { background: #dc3545; }
-    #toast.info    { background: #17a2b8; }
+    #toast { position: fixed; bottom: 24px; right: 24px; color: white; padding: 12px 20px; border-radius: 8px; font-size: 14px; display: none; z-index: 9999; max-width: 340px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+    #toast.success { background: #28a745; display: block; }
+    #toast.error   { background: #dc3545; display: block; }
+    #toast.info    { background: #17a2b8; display: block; }
   </style>
 </head>
 <body>
 <div class="container">
 
-  <!-- Token Banner -->
   <div id="tokenBanner">
-    <label>⚠️ GitHub PAT Token required to approve/reject posts:</label>
-    <input type="password" id="tokenInput" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" autocomplete="off">
+    <label>⚠️ GitHub PAT Token required to approve/reject:</label>
+    <input type="password" id="tokenInput" placeholder="github_pat_xxxxxxxxxxxxxxxxxxxx" autocomplete="off">
     <button id="tokenSaveBtn" onclick="saveToken()">Save Token</button>
-    <span id="tokenStatus"></span>
   </div>
 
   <h1>📊 Social Injector Dashboard</h1>
@@ -78,7 +73,7 @@
     <button class="btn btn-refresh" onclick="refreshDashboard()">🔄 Refresh</button>
   </div>
 
-  <div class="stats" id="stats">
+  <div class="stats">
     <div class="stat-card"><div class="stat-number" id="statPending">-</div><div class="stat-label">Pending</div></div>
     <div class="stat-card"><div class="stat-number" id="statApproved">-</div><div class="stat-label">Approved</div></div>
     <div class="stat-card"><div class="stat-number" id="statPosted">-</div><div class="stat-label">Posted</div></div>
@@ -86,7 +81,7 @@
     <div class="stat-card"><div class="stat-number" id="statTotal">-</div><div class="stat-label">Total</div></div>
   </div>
 
-  <div class="tabs" id="tabs">
+  <div class="tabs">
     <div class="tab active" data-status="all">All Posts</div>
     <div class="tab" data-status="pending">⏳ Pending</div>
     <div class="tab" data-status="approved">✅ Approved</div>
@@ -100,42 +95,107 @@
 <div id="toast"></div>
 
 <script>
-  const REPO_OWNER = "Csmittee";
-  const REPO_NAME  = "social-injector";
-  const CSV_PATH   = "social/posts.csv";
-  const WORKFLOW_APPROVE = "update-status.yml";   // workflow for approve/reject
-  const WORKFLOW_AI      = "ai-generator.yml";    // workflow for AI generation
+  const REPO_OWNER      = "Csmittee";
+  const REPO_NAME       = "social-injector";
+  const CSV_PATH        = "social/posts.csv";
+  const WORKFLOW_STATUS = "update-status.yml";
 
-  let allPosts = [];
+  let allPosts     = [];
   let currentFilter = "all";
 
-  // ── TOKEN MANAGEMENT ──────────────────────────────────────────────────────
-  function getToken() {
-    return sessionStorage.getItem("gh_pat") || "";
-  }
+  // ── TOKEN ────────────────────────────────────────────────────────────────
+  function getToken() { return sessionStorage.getItem("gh_pat") || ""; }
 
   function saveToken() {
     const val = document.getElementById("tokenInput").value.trim();
     if (!val) { showToast("Please enter a token first.", "error"); return; }
     sessionStorage.setItem("gh_pat", val);
-    document.getElementById("tokenStatus").textContent = "✅ Saved for this session";
     document.getElementById("tokenBanner").classList.add("hidden");
-    showToast("Token saved. You can now approve/reject posts.", "success");
+    showToast("Token saved for this session.", "success");
   }
 
   function checkTokenBanner() {
-    if (getToken()) {
-      document.getElementById("tokenBanner").classList.add("hidden");
-    }
+    if (getToken()) document.getElementById("tokenBanner").classList.add("hidden");
   }
 
-  // ── CSV READ ──────────────────────────────────────────────────────────────
+  // ── CSV PARSER — correctly handles multiline quoted fields ────────────────
+  function parseCSV(text) {
+    const posts   = [];
+    let headers   = null;
+    let field     = "";
+    let fields    = [];
+    let inQuotes  = false;
+    let i         = 0;
+
+    // Normalise line endings
+    text = text.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
+
+    while (i < text.length) {
+      const ch   = text[i];
+      const next = text[i + 1];
+
+      if (ch === '"') {
+        if (inQuotes && next === '"') {
+          // escaped quote inside quoted field
+          field += '"';
+          i += 2;
+          continue;
+        }
+        inQuotes = !inQuotes;
+        i++;
+        continue;
+      }
+
+      if (ch === ',' && !inQuotes) {
+        fields.push(field.trim());
+        field = "";
+        i++;
+        continue;
+      }
+
+      if (ch === '\n' && !inQuotes) {
+        // end of row
+        fields.push(field.trim());
+        field = "";
+
+        if (!headers) {
+          headers = fields.map(h => h.replace(/^"|"$/g, "").trim());
+        } else if (fields.some(f => f !== "")) {
+          // build post object
+          const post = {};
+          headers.forEach((h, idx) => { post[h] = (fields[idx] || "").replace(/^"|"$/g, "").trim(); });
+          // only add if it has a title (skip blank/malformed rows)
+          if (post.title) posts.push(post);
+        }
+
+        fields = [];
+        i++;
+        continue;
+      }
+
+      field += ch;
+      i++;
+    }
+
+    // Handle last row if no trailing newline
+    if (field || fields.length) {
+      fields.push(field.trim());
+      if (headers && fields.some(f => f !== "")) {
+        const post = {};
+        headers.forEach((h, idx) => { post[h] = (fields[idx] || "").replace(/^"|"$/g, "").trim(); });
+        if (post.title) posts.push(post);
+      }
+    }
+
+    return posts;
+  }
+
+  // ── LOAD ─────────────────────────────────────────────────────────────────
   async function loadPosts() {
     try {
-      // cache-bust so we always get the latest commit
       const url = `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/main/${CSV_PATH}?t=${Date.now()}`;
       const res = await fetch(url);
-      if (!res.ok) throw new Error(`HTTP ${res.status} — Could not load posts.csv`);
+      if (!res.ok) throw new Error(`HTTP ${res.status} — could not load posts.csv`);
       const text = await res.text();
       allPosts = parseCSV(text);
       updateStats();
@@ -146,57 +206,35 @@
     }
   }
 
-  // ── CSV PARSER (handles quoted fields with commas inside) ─────────────────
-  function parseCSV(text) {
-    const lines = text.trim().split("\n").filter(l => l.trim());
-    if (lines.length < 2) return [];
-
-    const headers = parseCSVRow(lines[0]);
-    const posts = [];
-    for (let i = 1; i < lines.length; i++) {
-      const values = parseCSVRow(lines[i]);
-      const post = {};
-      headers.forEach((h, idx) => { post[h] = (values[idx] || "").trim(); });
-      posts.push(post);
-    }
-    return posts;
-  }
-
-  function parseCSVRow(line) {
-    const result = [];
-    let current = "";
-    let inQuotes = false;
-    for (let i = 0; i < line.length; i++) {
-      const ch = line[i];
-      if (ch === '"') {
-        if (inQuotes && line[i + 1] === '"') { current += '"'; i++; } // escaped quote
-        else inQuotes = !inQuotes;
-      } else if (ch === ',' && !inQuotes) {
-        result.push(current.trim());
-        current = "";
-      } else {
-        current += ch;
-      }
-    }
-    result.push(current.trim());
-    return result;
-  }
-
-  // ── STATS ─────────────────────────────────────────────────────────────────
+  // ── STATS — counts only valid status values ───────────────────────────────
   function updateStats() {
-    const count = s => allPosts.filter(p => (p.status || "").toLowerCase() === s).length;
-    document.getElementById("statPending").textContent  = count("pending");
-    document.getElementById("statApproved").textContent = count("approved");
-    document.getElementById("statPosted").textContent   = count("posted");
-    document.getElementById("statRejected").textContent = count("rejected");
-    document.getElementById("statTotal").textContent    = allPosts.length;
+    const cnt = s => allPosts.filter(p => (p.status || "").toLowerCase().trim() === s).length;
+    const pending  = cnt("pending");
+    const approved = cnt("approved");
+    const posted   = cnt("posted");
+    const rejected = cnt("rejected");
+
+    document.getElementById("statPending").textContent  = pending;
+    document.getElementById("statApproved").textContent = approved;
+    document.getElementById("statPosted").textContent   = posted;
+    document.getElementById("statRejected").textContent = rejected;
+    // Total = sum of known statuses only — ignores any blank/corrupt rows
+    document.getElementById("statTotal").textContent    = pending + approved + posted + rejected;
   }
 
   // ── RENDER ────────────────────────────────────────────────────────────────
   function filterPosts() {
     return currentFilter === "all"
       ? allPosts
-      : allPosts.filter(p => (p.status || "").toLowerCase() === currentFilter);
+      : allPosts.filter(p => (p.status || "").toLowerCase().trim() === currentFilter);
+  }
+
+  function escHtml(str) {
+    return String(str || "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
   }
 
   function renderPosts() {
@@ -210,33 +248,25 @@
 
     container.innerHTML = "";
     filtered.forEach(post => {
-      const status  = (post.status || "pending").toLowerCase();
-      const safeTitle = (post.title || "").replace(/'/g, "\\'").replace(/"/g, "&quot;");
-      const card = document.createElement("div");
-      card.className = "post-card";
-      card.innerHTML = `
+      const status    = (post.status || "pending").toLowerCase().trim();
+      const safeTitle = escHtml(post.title || "");
+      const card      = document.createElement("div");
+      card.className  = "post-card";
+      card.innerHTML  = `
         <h3>${escHtml(post.title || "Untitled")}</h3>
         <p><strong>Platform:</strong> ${escHtml(post.platform || "—")}</p>
         <p><strong>Date:</strong> ${escHtml(post.post_date || "—")}</p>
         <div class="post-caption">${escHtml(post.caption || "")}</div>
         ${post.link ? `<p><strong>Link:</strong> <a href="${escHtml(post.link)}" target="_blank">${escHtml(post.link)}</a></p>` : ""}
-        <div><span class="badge badge-${status}">${status}</span></div>
+        <div><span class="badge badge-${status}">${status.toUpperCase()}</span></div>
         ${status === "pending" ? `
           <div>
-            <button class="btn btn-approve" onclick="updatePostStatus('${safeTitle}', 'approved')">✅ Approve</button>
-            <button class="btn btn-reject"  onclick="updatePostStatus('${safeTitle}', 'rejected')">❌ Reject</button>
+            <button class="btn btn-approve" onclick="updateStatus('${safeTitle}','approved')">✅ Approve</button>
+            <button class="btn btn-reject"  onclick="updateStatus('${safeTitle}','rejected')">❌ Reject</button>
           </div>` : ""}
       `;
       container.appendChild(card);
     });
-  }
-
-  function escHtml(str) {
-    return String(str)
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;");
   }
 
   // ── TABS ──────────────────────────────────────────────────────────────────
@@ -244,65 +274,62 @@
     tab.addEventListener("click", () => {
       document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
       tab.classList.add("active");
-      currentFilter = tab.getAttribute("data-status");
+      currentFilter = tab.dataset.status;
       renderPosts();
     });
   });
 
-  // ── APPROVE / REJECT via GitHub Actions ──────────────────────────────────
-  async function updatePostStatus(title, newStatus) {
+  // ── APPROVE / REJECT ──────────────────────────────────────────────────────
+  async function updateStatus(title, newStatus) {
     const token = getToken();
     if (!token) {
-      showToast("Please enter your GitHub PAT token first (banner at the top).", "error");
       document.getElementById("tokenBanner").classList.remove("hidden");
+      showToast("Please save your GitHub PAT token first.", "error");
       return;
     }
 
     if (!confirm(`Mark "${title}" as ${newStatus.toUpperCase()}?`)) return;
 
-    // Disable all approve/reject buttons while processing
-    document.querySelectorAll(".btn-approve, .btn-reject").forEach(b => b.disabled = true);
-    showToast(`Sending request to GitHub Actions...`, "info");
+    document.querySelectorAll(".btn-approve,.btn-reject").forEach(b => b.disabled = true);
+    showToast("Sending to GitHub Actions...", "info");
 
     try {
-      const url = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/actions/workflows/${WORKFLOW_APPROVE}/dispatches`;
-      const res = await fetch(url, {
-        method: "POST",
-        headers: {
-          "Accept": "application/vnd.github.v3+json",
-          "Authorization": `Bearer ${token}`,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          ref: "main",
-          inputs: { title: title, status: newStatus }
-        })
-      });
+      const res = await fetch(
+        `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/actions/workflows/${WORKFLOW_STATUS}/dispatches`,
+        {
+          method: "POST",
+          headers: {
+            "Accept": "application/vnd.github.v3+json",
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ ref: "main", inputs: { title, status: newStatus } })
+        }
+      );
 
-      // GitHub returns 204 No Content on success
       if (res.status === 204) {
-        showToast(`✅ "${title}" marked as ${newStatus}. Refreshing in 8s...`, "success");
-        setTimeout(refreshDashboard, 8000); // give Actions time to commit
+        showToast(`✅ "${title}" → ${newStatus}. Refreshing in 8s...`, "success");
+        setTimeout(refreshDashboard, 8000);
       } else if (res.status === 401) {
-        showToast("❌ Invalid or expired token. Check your GitHub PAT.", "error");
+        showToast("❌ Invalid token. Please re-enter your GitHub PAT.", "error");
         sessionStorage.removeItem("gh_pat");
         document.getElementById("tokenBanner").classList.remove("hidden");
       } else if (res.status === 422) {
-        showToast("❌ Workflow not found or inputs mismatch. Check update-status.yml exists.", "error");
+        showToast("❌ Workflow inputs mismatch. Check update-status.yml exists.", "error");
       } else {
         const body = await res.text();
-        showToast(`❌ GitHub API error ${res.status}: ${body}`, "error");
+        showToast(`❌ GitHub error ${res.status}: ${body}`, "error");
       }
     } catch (e) {
       showToast(`❌ Network error: ${e.message}`, "error");
     } finally {
-      document.querySelectorAll(".btn-approve, .btn-reject").forEach(b => b.disabled = false);
+      document.querySelectorAll(".btn-approve,.btn-reject").forEach(b => b.disabled = false);
     }
   }
 
   // ── REFRESH ───────────────────────────────────────────────────────────────
   function refreshDashboard() {
-    document.getElementById("postsContainer").innerHTML = `<div class="loading">⏳ Loading latest data...</div>`;
+    document.getElementById("postsContainer").innerHTML = `<div class="loading">⏳ Loading...</div>`;
     loadPosts();
   }
 
@@ -312,9 +339,8 @@
     const el = document.getElementById("toast");
     el.textContent = msg;
     el.className = type;
-    el.style.display = "block";
     clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => { el.style.display = "none"; }, 6000);
+    toastTimer = setTimeout(() => { el.className = ""; el.style.display = "none"; }, 6000);
   }
 
   // ── INIT ──────────────────────────────────────────────────────────────────
