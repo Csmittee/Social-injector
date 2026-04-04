@@ -3,11 +3,20 @@ name: AI Post Generator
 on:
   workflow_dispatch:
     inputs:
+      business_id:
+        description: "Business"
+        required: true
+        type: choice
+        options:
+          - iflex
+          - janisflow
+          - daje
+          - outride
       prompt:
-        description: "Your content brief / prompt for AI"
+        description: "Content brief / prompt for AI"
         required: true
       count:
-        description: "Number of posts to generate"
+        description: "Number of posts"
         required: true
         default: "5"
         type: choice
@@ -17,7 +26,7 @@ on:
           - "7"
           - "10"
       platforms:
-        description: "Platforms (comma-separated): Facebook,Instagram,Line"
+        description: "Platforms (comma-separated)"
         required: true
         default: "Facebook,Instagram"
 
@@ -44,9 +53,10 @@ jobs:
       - name: Generate posts
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-          PROMPT:     ${{ github.event.inputs.prompt }}
-          COUNT:      ${{ github.event.inputs.count }}
-          PLATFORMS:  ${{ github.event.inputs.platforms }}
+          BUSINESS_ID: ${{ github.event.inputs.business_id }}
+          PROMPT:      ${{ github.event.inputs.prompt }}
+          COUNT:       ${{ github.event.inputs.count }}
+          PLATFORMS:   ${{ github.event.inputs.platforms }}
         run: python scripts/ai_generator.py
 
       - name: Commit new posts
@@ -58,6 +68,6 @@ jobs:
           if git diff --cached --quiet; then
             echo "No changes to commit"
           else
-            git commit -m "feat: AI generated ${{ github.event.inputs.count }} post(s) — ${{ github.event.inputs.prompt }}"
+            git commit -m "feat: [${{ github.event.inputs.business_id }}] AI generated ${{ github.event.inputs.count }} post(s)"
             git push origin main
           fi
