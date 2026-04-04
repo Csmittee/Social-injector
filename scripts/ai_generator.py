@@ -2,12 +2,12 @@
 """
 ai_generator.py
 Generates social media posts using Claude (Anthropic) and appends to social/posts.csv.
+Reads business config from scripts/businesses.json to inject correct context.
 
 Called by .github/workflows/ai-generator.yml
 Requires: ANTHROPIC_API_KEY secret in GitHub repo settings.
 
-CSV columns (matches existing posts.csv):
-  title, post_date, platform, caption, image_urls, link, status
+CSV columns: title, post_date, platform, caption, image_urls, link, status
 """
 
 import anthropic
@@ -17,8 +17,9 @@ import os
 import sys
 from datetime import datetime, timedelta
 
-CSV_PATH   = "social/posts.csv"
-FIELDNAMES = ["title", "post_date", "platform", "caption", "image_urls", "link", "status"]
+CSV_PATH        = "social/posts.csv"
+BUSINESSES_PATH = "scripts/businesses.json"
+FIELDNAMES      = ["title", "post_date", "platform", "caption", "image_urls", "link", "status"]
 
 
 def ensure_csv_exists():
@@ -30,34 +31,71 @@ def ensure_csv_exists():
         print(f"Created new CSV: {CSV_PATH}")
 
 
-def generate_posts(prompt: str, count: int, platforms: list) -> list:
-    client = anthropic.Anthropic()  # reads ANTHROPIC_API_KEY from env
+def load_business(business_id: str) -> dict:
+    if not os.path.exists(BUSINESSES_PATH):
+        print(f"WARNING: {BUSINESSES_PATH} not found — running without business context.")
+        return None
+    with open(BUSINESSES_PATH, "r", encoding="utf-8") as f:
+        data = json.load(f)
+    for biz in data.get("businesses", []):
+        if biz["id"] == business_id:
+            return biz
+    print(f"WARNING: Business '{business_id}' not found in businesses.json")
+    return None
 
-    today = datetime.utcnow()
+
+def build_business_context(biz: dict) -> str:
+    if not biz:
+        return ""
+    lines = [
+        f"Business name: {biz['name']}",
+        f"Niche: {biz['niche']}",
+        f"Language style: {biz['language']}",
+        f"Default hashtags to include: {biz['hashtags']}",
+        f"Main URL for CTAs: {biz['booking_url']}",
+    ]
+    social = biz.get("social", {})
+    if social.get("facebook_page"):
+        lines.append(f"Facebook page: {social['facebook_page']}")
+    if social.get("instagram"):
+        lines.append(f"Instagram: {social['instagram']} ({social.get('instagram_handle', '')})")
+    return "\n".join(lines)
+
+
+def generate_posts(prompt: str, count: int, platforms: list, biz: dict) -> list:
+    client = anthropic.Anthropic()
+
+    today         = datetime.utcnow()
     date_examples = [(today + timedelta(days=i+1)).strftime("%Y-%m-%d") for i in range(7)]
+    biz_context   = build_business_context(biz)
 
     system = (
-        "You are a professional social media content creator. "
+        "You are a professional social media content creator for Thai businesses. "
         "Return ONLY a valid JSON array — no markdown, no code fences, no explanation."
     )
 
+    biz_block = f"--- Business Context ---\n{biz_context}\n---" if biz_context else ""
+
     user = f"""Generate exactly {count} social media posts.
 Target platforms (distribute evenly): {', '.join(platforms)}
-Brief: {prompt}
+User brief: {prompt}
+
+{biz_block}
 
 Rules:
 - Each post must be unique in tone: mix motivational, educational, story-based, promotional, question-based.
 - Vary emojis, hashtags, CTAs — never repeat the same ending.
-- Thai + English mix is great for the audience.
-- For "link": only include a real URL if there is a strong CTA (book, register, buy). Otherwise use empty string "".
-- For "platform": use exactly one value per post, e.g. "Facebook" or "Instagram" or "Line".
-- Spread post_date across the next 7 days. Use format: "YYYY-MM-DD HH:MM"
+- Use the business language style and include the default hashtags naturally.
+- For "link": use the business main URL only when there is a strong CTA (book, register, buy, visit). Otherwise use "".
+- For "platform": use exactly one value per post matching the target platforms.
+- Spread post_date across the next 7 days. Format: "YYYY-MM-DD HH:MM"
   Available dates: {', '.join(date_examples)}
+- Title should be short and catchy (max 60 chars).
 
-Return ONLY this JSON array format:
+Return ONLY this JSON array:
 [
   {{
-    "title": "Short catchy title (max 60 chars)",
+    "title": "Short catchy title",
     "post_date": "2026-04-04 09:00",
     "platform": "Facebook",
     "caption": "Full engaging caption with emojis and hashtags...",
@@ -76,11 +114,11 @@ Return ONLY this JSON array format:
 
     raw = message.content[0].text.strip()
 
-    # Strip accidental markdown fences
     if "```" in raw:
         start = raw.find("[")
         end   = raw.rfind("]") + 1
-        raw   = raw[start:end]
+        if start != -1 and end > start:
+            raw = raw[start:end]
 
     try:
         posts = json.loads(raw)
@@ -103,7 +141,7 @@ def append_posts(posts: list):
             "caption":    str(post.get("caption", "")).strip(),
             "image_urls": str(post.get("image_urls", "")).strip(),
             "link":       str(post.get("link", "")).strip(),
-            "status":     "pending",  # always force pending on new posts
+            "status":     "pending",
         }
         rows.append(row)
 
@@ -117,20 +155,18 @@ def append_posts(posts: list):
 
 
 def main():
-    # Read from env vars (set by the workflow)
     prompt        = os.getenv("PROMPT", "").strip()
     count_str     = os.getenv("COUNT", "5").strip()
     platforms_str = os.getenv("PLATFORMS", "Facebook,Instagram").strip()
+    business_id   = os.getenv("BUSINESS_ID", "").strip()
 
-    # Also support command-line args for local/codespace testing:
-    # python scripts/ai_generator.py "my prompt" 5 "Facebook,Instagram"
-    if len(sys.argv) >= 4:
-        prompt        = sys.argv[1]
-        count_str     = sys.argv[2]
-        platforms_str = sys.argv[3]
+    if len(sys.argv) >= 2: prompt        = sys.argv[1]
+    if len(sys.argv) >= 3: count_str     = sys.argv[2]
+    if len(sys.argv) >= 4: platforms_str = sys.argv[3]
+    if len(sys.argv) >= 5: business_id   = sys.argv[4]
 
     if not prompt:
-        print("ERROR: No prompt provided. Set PROMPT env var or pass as first argument.", file=sys.stderr)
+        print("ERROR: No prompt provided.", file=sys.stderr)
         sys.exit(1)
 
     try:
@@ -142,14 +178,18 @@ def main():
     if not platforms:
         platforms = ["Facebook", "Instagram"]
 
-    ensure_csv_exists()
+    biz = load_business(business_id) if business_id else None
+    if biz:
+        print(f"Business context loaded: {biz['name']}")
+    else:
+        print("No business selected — generating without business context")
 
+    ensure_csv_exists()
     print(f"Generating {count} post(s) for: {platforms}")
     print(f"Prompt: {prompt}")
 
-    posts = generate_posts(prompt, count, platforms)
+    posts = generate_posts(prompt, count, platforms, biz)
     print(f"Claude returned {len(posts)} post(s)")
-
     append_posts(posts)
 
 
