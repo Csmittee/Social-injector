@@ -3,18 +3,9 @@ name: Update Post Status
 on:
   workflow_dispatch:
     inputs:
-      title:
-        description: "Exact post title to update"
+      changes:
+        description: 'Format: "Title 1::approved||Title 2::rejected"'
         required: true
-      status:
-        description: "New status"
-        required: true
-        type: choice
-        options:
-          - approved
-          - rejected
-          - posted
-          - pending
 
 jobs:
   update-status:
@@ -33,11 +24,10 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Update CSV status
+      - name: Update CSV statuses
         run: |
           python scripts/update_status.py \
-            --title "${{ github.event.inputs.title }}" \
-            --status "${{ github.event.inputs.status }}"
+            --changes "${{ github.event.inputs.changes }}"
 
       - name: Commit updated CSV
         run: |
@@ -48,6 +38,6 @@ jobs:
           if git diff --cached --quiet; then
             echo "No changes to commit"
           else
-            git commit -m "chore: '${{ github.event.inputs.title }}' -> ${{ github.event.inputs.status }}"
+            git commit -m "chore: batch status update"
             git push origin main
           fi
