@@ -159,7 +159,7 @@
     if (getToken()) document.getElementById("tokenBanner").classList.add("hidden");
   }
 
-  // ── WORKFLOW WATCHER ─────────────────────────────────────────────────────
+  // ── WORKFLOW WATCHER (unchanged) ────────────────────────────────────────
   let watchTimer    = null;
   let elapsedTimer  = null;
   let watchStart    = null;
@@ -238,30 +238,28 @@
     watchTimer = elapsedTimer = null;
   }
 
-  // ── IMPROVED CSV PARSER (This is the only part that was changed) ───────
+  // ── FIXED CSV PARSER ─────────────────────────────────────────────────────
   function parseCSV(text) {
     const posts = [];
-    const lines = text.split(/\r?\n/);
+    const lines = text.replace(/\r\n?/g, "\n").split("\n");
     if (lines.length < 2) return posts;
 
     const headers = parseCSVLine(lines[0]);
 
     for (let i = 1; i < lines.length; i++) {
-      if (!lines[i].trim()) continue;
-      const fields = parseCSVLine(lines[i]);
+      const line = lines[i].trim();
+      if (!line) continue;
+
+      const fields = parseCSVLine(line);
       if (fields.length < headers.length) continue;
 
       const post = {};
       headers.forEach((h, idx) => {
-        let value = (fields[idx] || "").trim();
-        // Clean common mojibake
-        value = value
-          .replace(/â€™/g, "'")
-          .replace(/â€œ/g, '"')
-          .replace(/â€/g, '"')
-          .replace(/Ã¢â‚¬â„¢/g, "'")
-          .replace(/Ã¢â‚¬Å“/g, '"');
-        post[h] = value;
+        let val = (fields[idx] || "").trim();
+        // Clean mojibake
+        val = val.replace(/â€™/g, "'").replace(/â€œ/g, '"').replace(/â€/g, '"')
+                 .replace(/Ã¢â‚¬â„¢/g, "'").replace(/Ã¢â‚¬Å“/g, '"');
+        post[h] = val;
       });
 
       if (post.title && post.title.trim()) {
@@ -303,11 +301,10 @@
     }
     result.push(field);
 
-    // Remove outer quotes and trim
     return result.map(f => {
       f = f.trim();
       if (f.startsWith('"') && f.endsWith('"')) {
-        f = f.slice(1, -1).trim();
+        f = f.slice(1, -1);
       }
       return f;
     });
@@ -344,7 +341,7 @@
 
   // ── STATS ─────────────────────────────────────────────────────────────────
   function updateStats() {
-    const cnt = s => allPosts.filter(p => (p.status||"").toLowerCase().trim()===s).length;
+    const cnt      = s => allPosts.filter(p => (p.status||"").toLowerCase().trim()===s).length;
     const pending  = cnt("pending");
     const approved = cnt("approved");
     const posted   = cnt("posted");
