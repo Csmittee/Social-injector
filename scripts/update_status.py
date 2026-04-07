@@ -2,25 +2,21 @@
 """
 update_status.py
 Updates status of ONE OR MORE posts in social/posts.csv in a single run.
-
-Called by .github/workflows/update-status.yml
-Usage:
-    python scripts/update_status.py --changes "Title 1:approved,Title 2:rejected,Title 3:approved"
 """
 
 import argparse
 import csv
 import os
 import sys
+import codecs
 
 CSV_PATH       = "social/posts.csv"
 VALID_STATUSES = {"pending", "approved", "rejected", "posted"}
 
+# Force UTF-8 output
+sys.stdout = codecs.getwriter("utf-8")(sys.stdout.buffer)
 
 def update_statuses(changes: dict) -> None:
-    """
-    changes = { "Post Title": "approved", "Other Title": "rejected", ... }
-    """
     if not os.path.exists(CSV_PATH):
         print(f"ERROR: {CSV_PATH} not found.", file=sys.stderr)
         sys.exit(1)
@@ -39,8 +35,6 @@ def update_statuses(changes: dict) -> None:
 
     updated   = []
     not_found = []
-
-    # Track which titles we still need to match
     pending_changes = dict(changes)
 
     for row in rows:
@@ -53,12 +47,10 @@ def update_statuses(changes: dict) -> None:
                 updated.append(f"  '{title}'  {old_status} -> {new_status}")
             else:
                 updated.append(f"  '{title}'  already {new_status} (no change)")
-            del pending_changes[title]  # mark as matched
+            del pending_changes[title]
 
-    # Anything left in pending_changes was not found
     not_found = list(pending_changes.keys())
 
-    # Report
     print(f"Processing {len(changes)} status change(s):")
     for u in updated:
         print(u)
@@ -71,7 +63,7 @@ def update_statuses(changes: dict) -> None:
         print("ERROR: No posts were updated.", file=sys.stderr)
         sys.exit(1)
 
-    # Write back
+    # Write back with strict UTF-8
     with open(CSV_PATH, "w", encoding="utf-8", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=fieldnames, quoting=csv.QUOTE_MINIMAL)
         writer.writeheader()
@@ -81,20 +73,13 @@ def update_statuses(changes: dict) -> None:
 
 
 def parse_changes(changes_str: str) -> dict:
-    """
-    Parse "Title 1:approved,Title 2:rejected" into a dict.
-    Handles titles that contain commas by using | as separator between pairs.
-    Format: "title1::status1||title2::status2"
-    """
     changes = {}
-    # Use || as pair separator and :: as title:status separator
     pairs = changes_str.split("||")
     for pair in pairs:
         pair = pair.strip()
         if "::" not in pair:
             print(f"WARNING: Skipping malformed pair: '{pair}'", file=sys.stderr)
             continue
-        # Split on LAST :: to handle titles with :: in them
         idx    = pair.rfind("::")
         title  = pair[:idx].strip()
         status = pair[idx+2:].strip().lower()
@@ -110,10 +95,8 @@ def parse_changes(changes_str: str) -> dict:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--changes", required=True,
-        help='Format: "Title 1::approved||Title 2::rejected||Title 3::approved"'
-    )
+    parser.add_argument("--changes", required=True,
+        help='Format: "Title 1::approved||Title 2::rejected||Title 3::approved"')
     args    = parser.parse_args()
     changes = parse_changes(args.changes)
 
