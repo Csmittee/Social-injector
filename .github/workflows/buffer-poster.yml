@@ -1,0 +1,45 @@
+name: Buffer Poster
+
+on:
+  workflow_dispatch:
+    inputs:
+      titles:
+        description: 'Post titles to send to Buffer (|| separated)'
+        required: true
+
+jobs:
+  post-to-buffer:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Send posts to Buffer
+        env:
+          BUFFER_API_KEY: ${{ secrets.BUFFER_API_KEY }}
+        run: |
+          python scripts/buffer_poster.py \
+            --titles "${{ github.event.inputs.titles }}"
+
+      - name: Commit updated CSV (status -> posted)
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git pull --rebase origin main || true
+          git add social/posts.csv
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "feat: posts sent to Buffer → posted"
+            git push origin main
+          fi
