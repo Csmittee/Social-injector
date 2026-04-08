@@ -9,6 +9,7 @@
     body { font-family: 'Segoe UI', Arial, sans-serif; margin: 0; padding: 20px; background: #f0f2f5; }
     .container { max-width: 1200px; margin: auto; background: white; padding: 24px; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.1); }
 
+    /* TOKEN BANNER */
     #tokenBanner { background: #fff3cd; border: 1px solid #ffc107; border-radius: 8px; padding: 14px 18px; margin-bottom: 20px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
     #tokenBanner.hidden { display: none; }
     #tokenBanner label { font-weight: 600; color: #856404; white-space: nowrap; }
@@ -16,6 +17,7 @@
     #tokenSaveBtn { background: #ffc107; color: #333; border: none; border-radius: 6px; padding: 8px 16px; font-weight: bold; cursor: pointer; }
     #tokenSaveBtn:hover { background: #e0a800; }
 
+    /* WORKFLOW BAR */
     #workflowBar { display: none; align-items: center; gap: 10px; border-radius: 8px; padding: 10px 16px; margin-bottom: 16px; font-size: 14px; font-weight: 600; }
     #workflowBar.running { display: flex; background: #e8f4fd; border: 1px solid #17a2b8; color: #0c6578; }
     #workflowBar.done    { display: flex; background: #d4edda; border: 1px solid #28a745; color: #155724; }
@@ -27,60 +29,101 @@
     h1 { text-align: center; margin: 0 0 16px; font-size: 26px; }
     .nav { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; }
 
-    .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin: 20px 0; }
-    .stat-card { background: #f8f9fa; padding: 14px; border-radius: 8px; text-align: center; border: 1px solid #e0e0e0; }
+    /* STATS */
+    .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px; margin: 20px 0; }
+    .stat-card { background: #f8f9fa; padding: 14px; border-radius: 8px; text-align: center; border: 1px solid #e0e0e0; cursor: pointer; transition: all 0.15s; }
+    .stat-card:hover { border-color: #007bff; background: #f0f7ff; }
     .stat-number { font-size: 2em; font-weight: bold; color: #333; }
-    .stat-label { font-size: 13px; color: #666; margin-top: 4px; }
+    .stat-label { font-size: 12px; color: #666; margin-top: 4px; }
 
+    /* TABS — reordered: Pending, Approved, Rejected, Post Queue, Posted */
     .tabs { display: flex; flex-wrap: wrap; gap: 6px; margin: 20px 0 0; border-bottom: 2px solid #ddd; }
-    .tab { padding: 9px 18px; background: #f1f1f1; border-radius: 6px 6px 0 0; cursor: pointer; border: 1px solid #ddd; border-bottom: none; font-size: 14px; transition: background 0.15s; }
+    .tab { padding: 9px 16px; background: #f1f1f1; border-radius: 6px 6px 0 0; cursor: pointer; border: 1px solid #ddd; border-bottom: none; font-size: 14px; transition: background 0.15s; white-space: nowrap; }
     .tab:hover { background: #e0e0e0; }
     .tab.active { background: #007bff; color: white; border-color: #007bff; }
+    .tab[data-status="post_queue"].active { background: #fd7e14; border-color: #fd7e14; }
+    .tab[data-status="rejected"].active   { background: #dc3545; border-color: #dc3545; }
+    .tab[data-status="posted"].active     { background: #6c757d; border-color: #6c757d; }
 
+    /* POSTS GRID */
     #postsContainer { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 18px; margin-top: 20px; }
-    .post-card { border: 2px solid #ddd; border-radius: 10px; padding: 16px; background: white; box-shadow: 0 1px 4px rgba(0,0,0,0.06); transition: border-color 0.2s, background 0.2s; }
-    .post-card h3 { margin: 0 0 10px; font-size: 16px; }
-    .post-card p { margin: 4px 0; font-size: 14px; color: #444; }
-    .post-caption { white-space: pre-wrap; background: #f9f9f9; border-radius: 6px; padding: 8px; font-size: 13px; color: #333; margin: 8px 0; max-height: 120px; overflow-y: auto; }
-    .post-card.local-approved { border-color: #28a745; background: #f0fff4; }
-    .post-card.local-rejected { border-color: #dc3545; background: #fff5f5; }
-    .post-card.local-approved h3::after { content: " ✅"; font-size: 14px; }
-    .post-card.local-rejected h3::after { content: " ❌"; font-size: 14px; }
+
+    /* POST CARD */
+    .post-card { border: 2px solid #ddd; border-radius: 10px; padding: 16px; background: white; box-shadow: 0 1px 4px rgba(0,0,0,0.06); transition: border-color 0.2s, background 0.2s; position: relative; }
+    .post-card h3 { margin: 0 0 8px; font-size: 15px; padding-right: 28px; }
+    .post-card p { margin: 3px 0; font-size: 13px; color: #444; }
+    .post-caption { white-space: pre-wrap; background: #f9f9f9; border-radius: 6px; padding: 8px; font-size: 13px; color: #333; margin: 8px 0; max-height: 110px; overflow-y: auto; line-height: 1.5; }
+    .post-image { width: 100%; border-radius: 8px; margin: 8px 0; max-height: 180px; object-fit: cover; border: 1px solid #eee; }
+    .post-image-placeholder { width: 100%; height: 100px; border-radius: 8px; margin: 8px 0; background: #f0f0f0; border: 2px dashed #ccc; display: flex; align-items: center; justify-content: center; color: #aaa; font-size: 13px; }
+
+    /* card state colours */
+    .post-card.local-approved   { border-color: #28a745; background: #f0fff4; }
+    .post-card.local-rejected   { border-color: #dc3545; background: #fff5f5; }
+    .post-card.img-selected     { border-color: #fd7e14; background: #fff8f0; }
+
+    /* SELECT CHECKBOX (image batch) */
+    .card-checkbox { position: absolute; top: 12px; right: 12px; width: 20px; height: 20px; cursor: pointer; accent-color: #fd7e14; }
+
     .undo-hint { font-size: 11px; color: #888; margin-top: 4px; font-style: italic; }
 
-    .badge { display: inline-block; padding: 3px 10px; border-radius: 4px; font-size: 12px; font-weight: bold; text-transform: uppercase; margin: 8px 0; }
-    .badge-pending  { background: #fff3cd; color: #856404; }
-    .badge-approved { background: #d4edda; color: #155724; }
-    .badge-posted   { background: #cce5ff; color: #004085; }
-    .badge-rejected { background: #f8d7da; color: #721c24; }
+    /* BADGES */
+    .badge { display: inline-block; padding: 3px 10px; border-radius: 4px; font-size: 11px; font-weight: bold; text-transform: uppercase; margin: 6px 0; }
+    .badge-pending    { background: #fff3cd; color: #856404; }
+    .badge-approved   { background: #d4edda; color: #155724; }
+    .badge-post_queue { background: #ffe5d0; color: #7d3a00; }
+    .badge-posted     { background: #cce5ff; color: #004085; }
+    .badge-rejected   { background: #f8d7da; color: #721c24; }
 
-    .btn { padding: 8px 16px; margin: 4px 4px 0 0; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 13px; transition: all 0.15s; }
+    /* BUTTONS */
+    .btn { padding: 8px 14px; margin: 3px 3px 0 0; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 13px; transition: all 0.15s; }
     .btn:hover { opacity: 0.85; }
     .btn:disabled { opacity: 0.4; cursor: not-allowed; }
-    .btn-approve { background: #28a745; color: white; }
-    .btn-reject  { background: #dc3545; color: white; }
-    .btn-ai      { background: #6f42c1; color: white; padding: 10px 22px; font-size: 15px; }
-    .btn-refresh { background: #17a2b8; color: white; padding: 10px 22px; font-size: 15px; }
+    .btn-approve  { background: #28a745; color: white; }
+    .btn-reject   { background: #dc3545; color: white; }
+    .btn-ai       { background: #6f42c1; color: white; padding: 10px 22px; font-size: 15px; }
+    .btn-refresh  { background: #17a2b8; color: white; padding: 10px 22px; font-size: 15px; }
+    .btn-redo     { background: #fd7e14; color: white; }
+    .btn-trash    { background: #6c757d; color: white; }
 
-    #submitBar { position: fixed; bottom: 0; left: 0; right: 0; background: #1a1a2e; color: white; padding: 16px 24px; display: none; align-items: center; justify-content: space-between; gap: 16px; z-index: 1000; box-shadow: 0 -4px 20px rgba(0,0,0,0.3); flex-wrap: wrap; }
+    /* BOTTOM ACTION BAR — shared by both modes */
+    #submitBar { position: fixed; bottom: 0; left: 0; right: 0; color: white; padding: 14px 24px; display: none; align-items: center; justify-content: space-between; gap: 16px; z-index: 1000; box-shadow: 0 -4px 20px rgba(0,0,0,0.3); flex-wrap: wrap; }
     #submitBar.visible { display: flex; }
-    #submitCount { font-size: 16px; font-weight: 600; }
-    #submitCount span { background: #ffc107; color: #333; border-radius: 20px; padding: 2px 12px; margin: 0 6px; font-weight: bold; }
-    #submitActions { display: flex; gap: 10px; align-items: center; }
-    #btnSubmit { background: #28a745; color: white; border: none; border-radius: 8px; padding: 12px 28px; font-size: 16px; font-weight: bold; cursor: pointer; }
-    #btnSubmit:hover { background: #218838; }
-    #btnSubmit:disabled { background: #555; cursor: not-allowed; }
-    #btnClearAll { background: transparent; color: #aaa; border: 1px solid #555; border-radius: 8px; padding: 10px 18px; font-size: 14px; cursor: pointer; }
+
+    /* MODE: status changes (approve/reject) */
+    #submitBar.mode-status  { background: #1a1a2e; }
+    /* MODE: image batch */
+    #submitBar.mode-image   { background: #5a2d00; }
+    /* MODE: rejected actions */
+    #submitBar.mode-reject  { background: #4a0a0a; }
+
+    #submitBarLabel { font-size: 15px; font-weight: 600; flex: 1; }
+    #submitBarLabel span { background: #ffc107; color: #333; border-radius: 20px; padding: 2px 12px; margin: 0 6px; font-weight: bold; }
+    #submitBarActions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+
+    .bar-btn { border: none; border-radius: 8px; padding: 11px 24px; font-size: 15px; font-weight: bold; cursor: pointer; }
+    .bar-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    #btnSubmitStatus  { background: #28a745; color: white; }
+    #btnSubmitStatus:hover:not(:disabled) { background: #218838; }
+    #btnCreateImages  { background: #fd7e14; color: white; }
+    #btnCreateImages:hover:not(:disabled) { background: #e06a00; }
+    #btnClearAll      { background: transparent; color: #aaa; border: 1px solid #555; border-radius: 8px; padding: 9px 16px; font-size: 13px; cursor: pointer; }
     #btnClearAll:hover { color: white; border-color: #aaa; }
-    body.has-pending-submit { padding-bottom: 90px; }
+    #btnRejectBatch   { background: #dc3545; color: white; }
+    #btnRedoBatch     { background: #fd7e14; color: white; }
+
+    body.has-bar { padding-bottom: 80px; }
 
     .loading { text-align: center; padding: 40px; color: #666; font-size: 16px; }
     .error-msg { color: #dc3545; background: #f8d7da; border-radius: 6px; padding: 12px; margin: 10px 0; }
 
-    #toast { position: fixed; bottom: 80px; right: 24px; color: white; padding: 12px 20px; border-radius: 8px; font-size: 14px; display: none; z-index: 9999; max-width: 340px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+    #toast { position: fixed; bottom: 88px; right: 24px; color: white; padding: 12px 20px; border-radius: 8px; font-size: 14px; display: none; z-index: 9999; max-width: 340px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
     #toast.success { background: #28a745; display: block; }
     #toast.error   { background: #dc3545; display: block; }
     #toast.info    { background: #17a2b8; display: block; }
+
+    /* select-all helper row */
+    .select-all-row { display: flex; align-items: center; gap: 10px; margin: 12px 0 4px; font-size: 14px; color: #555; }
+    .select-all-row label { cursor: pointer; display: flex; align-items: center; gap: 6px; }
   </style>
 </head>
 <body>
@@ -106,143 +149,105 @@
   </div>
 
   <div class="stats">
-    <div class="stat-card"><div class="stat-number" id="statPending">-</div><div class="stat-label">Pending</div></div>
-    <div class="stat-card"><div class="stat-number" id="statApproved">-</div><div class="stat-label">Approved</div></div>
-    <div class="stat-card"><div class="stat-number" id="statPosted">-</div><div class="stat-label">Posted</div></div>
-    <div class="stat-card"><div class="stat-number" id="statRejected">-</div><div class="stat-label">Rejected</div></div>
-    <div class="stat-card"><div class="stat-number" id="statTotal">-</div><div class="stat-label">Total</div></div>
+    <div class="stat-card" onclick="switchTab('pending')">
+      <div class="stat-number" id="statPending">-</div><div class="stat-label">⏳ Pending</div>
+    </div>
+    <div class="stat-card" onclick="switchTab('approved')">
+      <div class="stat-number" id="statApproved">-</div><div class="stat-label">✅ Approved</div>
+    </div>
+    <div class="stat-card" onclick="switchTab('rejected')">
+      <div class="stat-number" id="statRejected">-</div><div class="stat-label">❌ Rejected</div>
+    </div>
+    <div class="stat-card" onclick="switchTab('post_queue')">
+      <div class="stat-number" id="statQueue">-</div><div class="stat-label">🖼️ Post Queue</div>
+    </div>
+    <div class="stat-card" onclick="switchTab('posted')">
+      <div class="stat-number" id="statPosted">-</div><div class="stat-label">📤 Posted</div>
+    </div>
+    <div class="stat-card" style="cursor:default;">
+      <div class="stat-number" id="statTotal">-</div><div class="stat-label">Total</div>
+    </div>
   </div>
 
+  <!-- TABS: Pending | Approved | Rejected | Post Queue | Posted -->
   <div class="tabs">
-    <div class="tab active" data-status="all">All Posts</div>
-    <div class="tab" data-status="pending">⏳ Pending</div>
+    <div class="tab active" data-status="pending">⏳ Pending</div>
     <div class="tab" data-status="approved">✅ Approved</div>
-    <div class="tab" data-status="posted">📤 Posted</div>
     <div class="tab" data-status="rejected">❌ Rejected</div>
+    <div class="tab" data-status="post_queue">🖼️ Post Queue</div>
+    <div class="tab" data-status="posted">📤 Posted</div>
+  </div>
+
+  <!-- Optional select-all for approved tab -->
+  <div id="selectAllRow" class="select-all-row" style="display:none;">
+    <label>
+      <input type="checkbox" id="selectAllCb" onchange="toggleSelectAll(this.checked)">
+      Select all for image generation
+    </label>
+    <span id="selectedCountLabel" style="color:#fd7e14;font-weight:600;"></span>
   </div>
 
   <div id="postsContainer"><div class="loading">Loading posts...</div></div>
 </div>
 
+<!-- BOTTOM BAR -->
 <div id="submitBar">
-  <div id="submitCount">You have <span id="changeCount">0</span> pending change(s) — not saved yet</div>
-  <div id="submitActions">
-    <button id="btnClearAll" onclick="clearAllChanges()">✕ Clear All</button>
-    <button id="btnSubmit"   onclick="submitChanges()">🚀 Submit Changes</button>
+  <div id="submitBarLabel">—</div>
+  <div id="submitBarActions">
+    <!-- status mode buttons -->
+    <button id="btnClearAll"     class="bar-btn" onclick="clearAllChanges()" style="background:transparent;color:#aaa;border:1px solid #555;">✕ Clear</button>
+    <button id="btnSubmitStatus" class="bar-btn" onclick="submitChanges()">🚀 Submit Changes</button>
+    <!-- image mode button (hidden by default) -->
+    <button id="btnCreateImages" class="bar-btn" onclick="triggerImageGeneration()" style="display:none;">🎨 Create Images</button>
+    <!-- reject batch buttons (hidden by default) -->
+    <button id="btnRedoBatch"    class="bar-btn btn-redo"   onclick="submitRejectBatch('redo')"  style="display:none;">🔄 Redo Selected</button>
+    <button id="btnRejectBatch"  class="bar-btn btn-reject" onclick="submitRejectBatch('trash')" style="display:none;">🗑️ Trash Selected</button>
   </div>
 </div>
 
 <div id="toast"></div>
 
 <script>
-  const REPO_OWNER      = "Csmittee";
-  const REPO_NAME       = "social-injector";
-  const CSV_PATH        = "social/posts.csv";
-  const WORKFLOW_STATUS = "update-status.yml";
+  const REPO_OWNER         = "Csmittee";
+  const REPO_NAME          = "social-injector";
+  const CSV_PATH           = "social/posts.csv";
+  const WORKFLOW_STATUS    = "update-status.yml";
+  const WORKFLOW_IMG       = "image-generator.yml";
 
   let allPosts      = [];
-  let currentFilter = "all";
-  let localChanges  = {};
+  let currentFilter = "pending";
+  let localChanges  = {};      // title -> "approved"|"rejected"  (pending tab)
+  let imgSelected   = new Set(); // titles selected for image gen (approved tab)
+  let rejectSelected= new Set(); // titles selected for redo/trash (rejected tab)
 
-  // ── TOKEN ────────────────────────────────────────────────────────────────
-  function getToken() { return sessionStorage.getItem("gh_pat") || ""; }
-
-  function saveToken() {
-    const val = document.getElementById("tokenInput").value.trim();
-    if (!val) { showToast("Please enter a token first.", "error"); return; }
-    sessionStorage.setItem("gh_pat", val);
-    document.getElementById("tokenBanner").classList.add("hidden");
-    showToast("Token saved for this session.", "success");
-  }
-
-  function checkTokenBanner() {
-    if (getToken()) document.getElementById("tokenBanner").classList.add("hidden");
-  }
-
-  // ── WORKFLOW WATCHER ─────────────────────────────────────────────────────
-  let watchTimer    = null;
-  let elapsedTimer  = null;
-  let watchStart    = null;
-  let dispatchedAt  = null; // timestamp when we dispatched — used to find the RIGHT run
-
-  function startWatching(workflowFile, label) {
-    stopWatching();
-    watchStart   = Date.now();
-    dispatchedAt = new Date(watchStart - 3000).toISOString(); // 3s buffer before dispatch time
-
-    const bar  = document.getElementById("workflowBar");
-    const msg  = document.getElementById("workflowMsg");
-    const spin = document.getElementById("workflowSpin");
-    const el   = document.getElementById("workflowElapsed");
-
-    bar.className   = "running";
-    msg.textContent = `⚙️ ${label} — waiting for GitHub to start...`;
-    spin.style.display = "inline-block";
-
-    elapsedTimer = setInterval(() => {
-      el.textContent = `${Math.round((Date.now() - watchStart) / 1000)}s`;
-    }, 1000);
-
-    // Wait 6 seconds before first poll — gives GitHub time to register the new run
-    setTimeout(() => {
-      pollWorkflow(workflowFile, label, msg, spin, bar);
-      watchTimer = setInterval(() => pollWorkflow(workflowFile, label, msg, spin, bar), 5000);
-    }, 6000);
-  }
-
-  async function pollWorkflow(workflowFile, label, msg, spin, bar) {
-    const token = getToken();
-    if (!token) { stopWatching(); return; }
-
-    try {
+  // ── UTF-8 SAFE CSV DECODE ─────────────────────────────────────────────────
+  // Always decode via TextDecoder so emojis and Thai chars survive
+  async function fetchCSVText(token) {
+    if (token) {
       const res = await fetch(
-        `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/actions/workflows/${workflowFile}/runs?per_page=5`,
+        `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${CSV_PATH}`,
         { headers: { "Authorization": `Bearer ${token}`, "Accept": "application/vnd.github.v3+json" } }
       );
-      if (!res.ok) return;
-
+      if (!res.ok) throw new Error(`GitHub API HTTP ${res.status}`);
       const data = await res.json();
-      const runs = data.workflow_runs || [];
-
-      // Find the run that was created AFTER we dispatched
-      const run = runs.find(r => new Date(r.created_at) >= new Date(dispatchedAt));
-
-      if (!run) {
-        msg.textContent = `⚙️ ${label} — queued, waiting to start...`;
-        return;
-      }
-
-      msg.textContent = `⚙️ ${label} — ${run.status.replace("_", " ")}...`;
-
-      if (run.status === "completed") {
-        stopWatching();
-        if (run.conclusion === "success") {
-          bar.className = "done";
-          spin.style.display = "none";
-          msg.textContent = `✅ ${label} — done! Auto-refreshing in 5s...`;
-          // Wait 5s for GitHub CDN to catch up before fetching CSV
-          setTimeout(() => {
-            bar.style.display = "none";
-            bar.className = "";
-            refreshDashboard();
-          }, 5000);
-        } else {
-          bar.className = "failed";
-          spin.style.display = "none";
-          msg.textContent = `❌ ${label} failed (${run.conclusion}). Check GitHub Actions.`;
-          setTimeout(() => { bar.style.display = "none"; bar.className = ""; }, 10000);
-        }
-      }
-    } catch (e) { /* silent */ }
+      // base64 -> binary -> TextDecoder (UTF-8 safe, handles Thai + emoji)
+      const b64 = data.content.replace(/\n/g, "");
+      const bin = atob(b64);
+      const bytes = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+      return new TextDecoder("utf-8").decode(bytes);
+    } else {
+      const res = await fetch(
+        `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/main/${CSV_PATH}?t=${Date.now()}`
+      );
+      if (!res.ok) throw new Error(`Raw HTTP ${res.status}`);
+      // Response already decoded by browser, but force UTF-8 via arrayBuffer
+      const buf = await res.arrayBuffer();
+      return new TextDecoder("utf-8").decode(new Uint8Array(buf));
+    }
   }
 
-  function stopWatching() {
-    clearInterval(watchTimer);
-    clearInterval(elapsedTimer);
-    watchTimer = elapsedTimer = null;
-  }
-
-  // ── CSV PARSER — handles multiline quoted fields ───────────────────────
+  // ── CSV PARSER — handles multiline quoted fields ───────────────────────────
   function parseCSV(text) {
     const posts  = [];
     let headers  = null;
@@ -259,233 +264,464 @@
         if (inQuotes && next === '"') { field += '"'; i += 2; continue; }
         inQuotes = !inQuotes; i++; continue;
       }
-      if (ch === ',' && !inQuotes) { fields.push(field.trim()); field = ""; i++; continue; }
+      if (ch === ',' && !inQuotes) { fields.push(field); field = ""; i++; continue; }
       if (ch === '\n' && !inQuotes) {
-        fields.push(field.trim()); field = "";
+        fields.push(field); field = "";
+        const cleanFields = fields.map(f => f.replace(/^"|"$/g, "").trim());
         if (!headers) {
-          headers = fields.map(h => h.replace(/^"|"$/g, "").trim());
-        } else if (fields.some(f => f !== "")) {
+          headers = cleanFields;
+        } else if (cleanFields.some(f => f !== "")) {
           const post = {};
-          headers.forEach((h, idx) => { post[h] = (fields[idx]||"").replace(/^"|"$/g,"").trim(); });
+          headers.forEach((h, idx) => { post[h] = cleanFields[idx] || ""; });
           if (post.title) posts.push(post);
         }
         fields = []; i++; continue;
       }
       field += ch; i++;
     }
+    // last line (no trailing newline)
     if (field || fields.length) {
-      fields.push(field.trim());
-      if (headers && fields.some(f => f !== "")) {
-        const post = {};
-        headers.forEach((h, idx) => { post[h] = (fields[idx]||"").replace(/^"|"$/g,"").trim(); });
-        if (post.title) posts.push(post);
+      fields.push(field);
+      if (headers) {
+        const cleanFields = fields.map(f => f.replace(/^"|"$/g, "").trim());
+        if (cleanFields.some(f => f !== "")) {
+          const post = {};
+          headers.forEach((h, idx) => { post[h] = cleanFields[idx] || ""; });
+          if (post.title) posts.push(post);
+        }
       }
     }
     return posts;
   }
 
-  // ── LOAD — uses GitHub API to bypass CDN cache ────────────────────────
+  // ── TOKEN ────────────────────────────────────────────────────────────────
+  function getToken() { return sessionStorage.getItem("gh_pat") || ""; }
+
+  function saveToken() {
+    const val = document.getElementById("tokenInput").value.trim();
+    if (!val) { showToast("Please enter a token first.", "error"); return; }
+    sessionStorage.setItem("gh_pat", val);
+    document.getElementById("tokenBanner").classList.add("hidden");
+    showToast("Token saved for this session.", "success");
+    refreshDashboard();
+  }
+
+  function checkTokenBanner() {
+    if (getToken()) document.getElementById("tokenBanner").classList.add("hidden");
+  }
+
+  // ── WORKFLOW WATCHER ─────────────────────────────────────────────────────
+  let watchTimer = null, elapsedTimer = null, watchStart = null, dispatchedAt = null;
+
+  function startWatching(workflowFile, label) {
+    stopWatching();
+    watchStart   = Date.now();
+    dispatchedAt = new Date(watchStart - 3000).toISOString();
+    const bar = document.getElementById("workflowBar");
+    const msg = document.getElementById("workflowMsg");
+    const spin= document.getElementById("workflowSpin");
+    const el  = document.getElementById("workflowElapsed");
+    bar.className = "running";
+    msg.textContent = `⚙️ ${label} — waiting for GitHub...`;
+    spin.style.display = "inline-block";
+    elapsedTimer = setInterval(() => { el.textContent = `${Math.round((Date.now()-watchStart)/1000)}s`; }, 1000);
+    setTimeout(() => {
+      pollWorkflow(workflowFile, label, msg, spin, bar);
+      watchTimer = setInterval(() => pollWorkflow(workflowFile, label, msg, spin, bar), 5000);
+    }, 6000);
+  }
+
+  async function pollWorkflow(workflowFile, label, msg, spin, bar) {
+    const token = getToken(); if (!token) { stopWatching(); return; }
+    try {
+      const res = await fetch(
+        `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/actions/workflows/${workflowFile}/runs?per_page=5`,
+        { headers: { "Authorization": `Bearer ${token}`, "Accept": "application/vnd.github.v3+json" } }
+      );
+      if (!res.ok) return;
+      const data = await res.json();
+      const run = (data.workflow_runs||[]).find(r => new Date(r.created_at) >= new Date(dispatchedAt));
+      if (!run) { msg.textContent = `⚙️ ${label} — queued...`; return; }
+      msg.textContent = `⚙️ ${label} — ${run.status.replace("_"," ")}...`;
+      if (run.status === "completed") {
+        stopWatching();
+        if (run.conclusion === "success") {
+          bar.className = "done";
+          spin.style.display = "none";
+          msg.textContent = `✅ ${label} — done! Refreshing in 5s...`;
+          setTimeout(() => { bar.style.display="none"; bar.className=""; refreshDashboard(); }, 5000);
+        } else {
+          bar.className = "failed";
+          spin.style.display = "none";
+          msg.textContent = `❌ ${label} failed (${run.conclusion}). Check GitHub Actions.`;
+          setTimeout(() => { bar.style.display="none"; bar.className=""; }, 10000);
+        }
+      }
+    } catch(e) {}
+  }
+
+  function stopWatching() {
+    clearInterval(watchTimer); clearInterval(elapsedTimer);
+    watchTimer = elapsedTimer = null;
+  }
+
+  // ── LOAD POSTS ────────────────────────────────────────────────────────────
   async function loadPosts() {
     const token = getToken();
     try {
-      let text;
-      if (token) {
-        // Use GitHub contents API — always returns latest committed content, no CDN delay
-        const res = await fetch(
-          `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${CSV_PATH}`,
-          { headers: { "Authorization": `Bearer ${token}`, "Accept": "application/vnd.github.v3+json" } }
-        );
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const data = await res.json();
-        text = atob(data.content.replace(/\n/g, ""));
-      } else {
-        // Fallback: raw URL with cache bust (may lag 30-60s behind)
-        const res = await fetch(
-          `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/main/${CSV_PATH}?t=${Date.now()}`
-        );
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        text = await res.text();
-      }
+      const text = await fetchCSVText(token);
       allPosts = parseCSV(text);
       updateStats();
       renderPosts();
-    } catch (e) {
+    } catch(e) {
       document.getElementById("postsContainer").innerHTML =
-        `<div class="error-msg">❌ ${e.message}<br><small>Check that <code>social/posts.csv</code> exists in the repo.</small></div>`;
+        `<div class="error-msg">❌ ${e.message}<br><small>Check that <code>social/posts.csv</code> exists.</small></div>`;
     }
   }
 
   // ── STATS ─────────────────────────────────────────────────────────────────
   function updateStats() {
-    const cnt      = s => allPosts.filter(p => (p.status||"").toLowerCase().trim()===s).length;
-    const pending  = cnt("pending");
-    const approved = cnt("approved");
-    const posted   = cnt("posted");
-    const rejected = cnt("rejected");
-    document.getElementById("statPending").textContent  = pending;
-    document.getElementById("statApproved").textContent = approved;
-    document.getElementById("statPosted").textContent   = posted;
-    document.getElementById("statRejected").textContent = rejected;
-    document.getElementById("statTotal").textContent    = pending + approved + posted + rejected;
+    const cnt = s => allPosts.filter(p => norm(p.status) === s).length;
+    document.getElementById("statPending").textContent  = cnt("pending");
+    document.getElementById("statApproved").textContent = cnt("approved");
+    document.getElementById("statRejected").textContent = cnt("rejected");
+    document.getElementById("statQueue").textContent    = cnt("post_queue");
+    document.getElementById("statPosted").textContent   = cnt("posted");
+    document.getElementById("statTotal").textContent    = allPosts.length;
   }
 
-  // ── LOCAL CHANGES ─────────────────────────────────────────────────────────
+  function norm(s) { return (s||"pending").toLowerCase().trim(); }
+
+  // ── TAB SWITCHING ─────────────────────────────────────────────────────────
+  function switchTab(status) {
+    document.querySelectorAll(".tab").forEach(t => {
+      t.classList.toggle("active", t.dataset.status === status);
+    });
+    currentFilter = status;
+    imgSelected.clear();
+    rejectSelected.clear();
+    updateBar();
+    renderPosts();
+  }
+
+  document.querySelectorAll(".tab").forEach(tab => {
+    tab.addEventListener("click", () => switchTab(tab.dataset.status));
+  });
+
+  // ── LOCAL CHANGES (pending tab) ──────────────────────────────────────────
   function setLocalChange(title, newStatus) {
     const post = allPosts.find(p => p.title === title);
-    const original = post ? (post.status||"pending").toLowerCase().trim() : "pending";
+    const original = norm(post ? post.status : "pending");
     if (localChanges[title] === newStatus || original === newStatus) {
       delete localChanges[title];
     } else {
       localChanges[title] = newStatus;
     }
-    updateSubmitBar();
+    updateBar();
     renderPosts();
   }
 
   function clearAllChanges() {
     localChanges = {};
-    updateSubmitBar();
+    imgSelected.clear();
+    rejectSelected.clear();
+    updateBar();
     renderPosts();
   }
 
-  function updateSubmitBar() {
-    const count = Object.keys(localChanges).length;
-    document.getElementById("changeCount").textContent = count;
+  // ── IMAGE SELECTION (approved tab) ───────────────────────────────────────
+  function toggleImgSelect(title, checked) {
+    if (checked) imgSelected.add(title); else imgSelected.delete(title);
+    const card = document.querySelector(`.post-card[data-title="${CSS.escape(title)}"]`);
+    if (card) card.classList.toggle("img-selected", checked);
+    updateBar();
+    syncSelectAllCb();
+  }
+
+  function toggleSelectAll(checked) {
+    const visible = filterPosts();
+    visible.forEach(p => {
+      if (checked) imgSelected.add(p.title); else imgSelected.delete(p.title);
+    });
+    updateBar();
+    renderPosts();
+  }
+
+  function syncSelectAllCb() {
+    const visible = filterPosts();
+    const cb = document.getElementById("selectAllCb");
+    if (!cb) return;
+    cb.checked = visible.length > 0 && visible.every(p => imgSelected.has(p.title));
+    cb.indeterminate = !cb.checked && visible.some(p => imgSelected.has(p.title));
+    const lbl = document.getElementById("selectedCountLabel");
+    if (lbl) lbl.textContent = imgSelected.size > 0 ? `${imgSelected.size} selected` : "";
+  }
+
+  // ── REJECT SELECTION (rejected tab) ──────────────────────────────────────
+  function toggleRejectSelect(title, checked) {
+    if (checked) rejectSelected.add(title); else rejectSelected.delete(title);
+    const card = document.querySelector(`.post-card[data-title="${CSS.escape(title)}"]`);
+    if (card) card.classList.toggle("img-selected", checked);
+    updateBar();
+  }
+
+  // ── BOTTOM BAR ────────────────────────────────────────────────────────────
+  function updateBar() {
     const bar = document.getElementById("submitBar");
-    if (count > 0) {
-      bar.classList.add("visible");
-      document.body.classList.add("has-pending-submit");
-    } else {
-      bar.classList.remove("visible");
-      document.body.classList.remove("has-pending-submit");
+    const lbl = document.getElementById("submitBarLabel");
+
+    const statusCount = Object.keys(localChanges).length;
+    const imgCount    = imgSelected.size;
+    const rejCount    = rejectSelected.size;
+
+    // Decide mode
+    let mode = null;
+    if (currentFilter === "pending"  && statusCount > 0) mode = "status";
+    if (currentFilter === "approved" && imgCount > 0)    mode = "image";
+    if (currentFilter === "rejected" && rejCount > 0)    mode = "reject";
+
+    // hide all action buttons first
+    ["btnSubmitStatus","btnCreateImages","btnClearAll","btnRedoBatch","btnRejectBatch"].forEach(id => {
+      document.getElementById(id).style.display = "none";
+    });
+
+    if (!mode) {
+      bar.classList.remove("visible","mode-status","mode-image","mode-reject");
+      document.body.classList.remove("has-bar");
+      return;
+    }
+
+    bar.classList.add("visible");
+    document.body.classList.add("has-bar");
+    bar.className = `visible mode-${mode}`;
+
+    if (mode === "status") {
+      lbl.innerHTML = `You have <span>${statusCount}</span> pending change(s) — not saved yet`;
+      document.getElementById("btnClearAll").style.display = "inline-block";
+      document.getElementById("btnSubmitStatus").style.display = "inline-block";
+    }
+    if (mode === "image") {
+      lbl.innerHTML = `<span>${imgCount}</span> post(s) selected — generate images?`;
+      document.getElementById("btnClearAll").style.display = "inline-block";
+      document.getElementById("btnCreateImages").style.display = "inline-block";
+    }
+    if (mode === "reject") {
+      lbl.innerHTML = `<span>${rejCount}</span> rejected post(s) selected`;
+      document.getElementById("btnClearAll").style.display = "inline-block";
+      document.getElementById("btnRedoBatch").style.display = "inline-block";
+      document.getElementById("btnRejectBatch").style.display = "inline-block";
     }
   }
 
   // ── RENDER ────────────────────────────────────────────────────────────────
   function filterPosts() {
-    return currentFilter === "all"
-      ? allPosts
-      : allPosts.filter(p => (p.status||"").toLowerCase().trim() === currentFilter);
+    return allPosts.filter(p => norm(p.status) === currentFilter);
   }
 
+  // safe HTML escape — does NOT mangle unicode/Thai/emoji
   function escHtml(str) {
-    return String(str||"")
-      .replace(/&/g,"&amp;").replace(/</g,"&lt;")
-      .replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+    const d = document.createElement("div");
+    d.appendChild(document.createTextNode(str||""));
+    return d.innerHTML;
   }
+
+  // safe data attribute value escape (only quotes matter)
+  function escAttr(str) { return String(str||"").replace(/"/g, "&quot;"); }
 
   function renderPosts() {
     const container = document.getElementById("postsContainer");
     const filtered  = filterPosts();
+
+    // show/hide select-all row
+    const selectAllRow = document.getElementById("selectAllRow");
+    if (currentFilter === "approved") {
+      selectAllRow.style.display = "flex";
+      syncSelectAllCb();
+    } else {
+      selectAllRow.style.display = "none";
+    }
+
     if (filtered.length === 0) {
       container.innerHTML = `<p style="grid-column:1/-1;text-align:center;padding:40px;color:#888;">No posts in this category.</p>`;
       return;
     }
+
     container.innerHTML = "";
+
     filtered.forEach(post => {
-      const csvStatus    = (post.status||"pending").toLowerCase().trim();
+      const csvStatus    = norm(post.status);
       const localStatus  = localChanges[post.title];
       const displayStatus = localStatus || csvStatus;
-      const card = document.createElement("div");
-      card.className = "post-card" + (localStatus ? ` local-${localStatus}` : "");
 
-      let actionButtons = "";
-      if (csvStatus === "pending" || localStatus) {
+      const card = document.createElement("div");
+      card.className = "post-card" + (localStatus ? ` local-${localStatus}` : "")
+                     + (imgSelected.has(post.title) ? " img-selected" : "");
+      card.setAttribute("data-title", post.title);
+
+      // image thumbnail or placeholder
+      const imgHtml = post.image_urls
+        ? `<img class="post-image" src="${escAttr(post.image_urls)}" alt="post image" loading="lazy" onerror="this.style.display='none'">`
+        : (csvStatus !== "pending" ? `<div class="post-image-placeholder">🖼️ No image yet</div>` : "");
+
+      // action buttons per tab
+      let actionsHtml = "";
+
+      if (csvStatus === "pending" || (csvStatus === "pending" && localStatus)) {
         const approveActive = localStatus === "approved";
         const rejectActive  = localStatus === "rejected";
-        actionButtons = `
+        actionsHtml = `
           <div style="margin-top:8px;">
-            <button class="btn btn-approve"
-              style="${approveActive ? 'box-shadow:0 0 0 3px #28a74566;opacity:1;' : ''}"
-              onclick="setLocalChange('${escHtml(post.title)}','approved')">
+            <button class="btn btn-approve" style="${approveActive?'box-shadow:0 0 0 3px #28a74566;':''}"
+              onclick="setLocalChange('${escAttr(post.title)}','approved')">
               ${approveActive ? "✅ Approved" : "✅ Approve"}
             </button>
-            <button class="btn btn-reject"
-              style="${rejectActive ? 'box-shadow:0 0 0 3px #dc354566;opacity:1;' : ''}"
-              onclick="setLocalChange('${escHtml(post.title)}','rejected')">
+            <button class="btn btn-reject" style="${rejectActive?'box-shadow:0 0 0 3px #dc354566;':''}"
+              onclick="setLocalChange('${escAttr(post.title)}','rejected')">
               ${rejectActive ? "❌ Rejected" : "❌ Reject"}
             </button>
             ${localStatus ? `<div class="undo-hint">Click same button again to undo</div>` : ""}
           </div>`;
       }
 
+      // approved tab: checkbox for image gen
+      let checkboxHtml = "";
+      if (csvStatus === "approved") {
+        const checked = imgSelected.has(post.title) ? "checked" : "";
+        checkboxHtml = `<input type="checkbox" class="card-checkbox" title="Select for image generation"
+          ${checked} onchange="toggleImgSelect('${escAttr(post.title)}', this.checked)">`;
+      }
+
+      // rejected tab: checkbox for redo/trash
+      if (csvStatus === "rejected") {
+        const checked = rejectSelected.has(post.title) ? "checked" : "";
+        checkboxHtml = `<input type="checkbox" class="card-checkbox" title="Select for action"
+          ${checked} onchange="toggleRejectSelect('${escAttr(post.title)}', this.checked)">`;
+      }
+
+      // post_queue tab: show confirm-post button
+      let queueActions = "";
+      if (csvStatus === "post_queue") {
+        queueActions = `<div style="margin-top:8px;">
+          <span style="font-size:12px;color:#7d3a00;font-weight:600;">✅ Image ready — queued for Buffer</span>
+        </div>`;
+      }
+
       card.innerHTML = `
+        ${checkboxHtml}
         <h3>${escHtml(post.title||"Untitled")}</h3>
         <p><strong>Platform:</strong> ${escHtml(post.platform||"—")}</p>
         <p><strong>Date:</strong> ${escHtml(post.post_date||"—")}</p>
+        ${imgHtml}
         <div class="post-caption">${escHtml(post.caption||"")}</div>
-        ${post.link ? `<p><strong>Link:</strong> <a href="${escHtml(post.link)}" target="_blank">${escHtml(post.link)}</a></p>` : ""}
-        <div><span class="badge badge-${displayStatus}">${displayStatus.toUpperCase()}${localStatus?" (unsaved)":""}</span></div>
-        ${actionButtons}
+        ${post.link ? `<p><strong>Link:</strong> <a href="${escAttr(post.link)}" target="_blank" rel="noopener">${escHtml(post.link)}</a></p>` : ""}
+        <div>
+          <span class="badge badge-${displayStatus}">${displayStatus.toUpperCase()}${localStatus?" (unsaved)":""}</span>
+        </div>
+        ${actionsHtml}
+        ${queueActions}
       `;
       container.appendChild(card);
     });
+
+    syncSelectAllCb();
   }
 
-  // ── TABS ──────────────────────────────────────────────────────────────────
-  document.querySelectorAll(".tab").forEach(tab => {
-    tab.addEventListener("click", () => {
-      document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
-      tab.classList.add("active");
-      currentFilter = tab.dataset.status;
-      renderPosts();
-    });
-  });
-
-  // ── SUBMIT ────────────────────────────────────────────────────────────────
+  // ── SUBMIT STATUS CHANGES ─────────────────────────────────────────────────
   async function submitChanges() {
     const token = getToken();
-    if (!token) {
-      document.getElementById("tokenBanner").classList.remove("hidden");
-      showToast("Please save your GitHub PAT token first.", "error");
-      return;
-    }
+    if (!token) { document.getElementById("tokenBanner").classList.remove("hidden"); showToast("PAT token required.", "error"); return; }
     const count = Object.keys(localChanges).length;
-    if (count === 0) { showToast("No changes to submit.", "info"); return; }
+    if (!count) { showToast("No changes to submit.", "info"); return; }
     if (!confirm(`Submit ${count} status change(s) to GitHub?`)) return;
 
     const changesStr = Object.entries(localChanges)
-      .map(([title, status]) => `${title}::${status}`)
-      .join("||");
+      .map(([title, status]) => `${title}::${status}`).join("||");
 
-    document.getElementById("btnSubmit").disabled   = true;
-    document.getElementById("btnClearAll").disabled = true;
+    document.getElementById("btnSubmitStatus").disabled = true;
+    document.getElementById("btnClearAll").disabled     = true;
     showToast(`Submitting ${count} change(s)...`, "info");
 
     try {
       const res = await fetch(
         `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/actions/workflows/${WORKFLOW_STATUS}/dispatches`,
-        {
-          method: "POST",
-          headers: {
-            "Accept": "application/vnd.github.v3+json",
-            "Authorization": `Bearer ${token}`,
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({ ref: "main", inputs: { changes: changesStr } })
-        }
+        { method:"POST", headers:{ "Accept":"application/vnd.github.v3+json", "Authorization":`Bearer ${token}`, "Content-Type":"application/json" },
+          body: JSON.stringify({ ref:"main", inputs:{ changes: changesStr } }) }
       );
-
       if (res.status === 204) {
-        showToast(`✅ ${count} change(s) submitted! Watching workflow...`, "success");
-        localChanges = {};
-        updateSubmitBar();
-        renderPosts();
+        showToast(`✅ ${count} change(s) submitted!`, "success");
+        localChanges = {}; updateBar(); renderPosts();
         startWatching(WORKFLOW_STATUS, `Updating ${count} post(s)`);
       } else if (res.status === 401) {
-        showToast("❌ Invalid token. Please re-enter your GitHub PAT.", "error");
-        sessionStorage.removeItem("gh_pat");
+        showToast("❌ Invalid token.", "error"); sessionStorage.removeItem("gh_pat");
+        document.getElementById("tokenBanner").classList.remove("hidden");
+      } else {
+        showToast(`❌ GitHub error ${res.status}`, "error");
+      }
+    } catch(e) { showToast(`❌ Network: ${e.message}`, "error"); }
+    finally {
+      document.getElementById("btnSubmitStatus").disabled = false;
+      document.getElementById("btnClearAll").disabled     = false;
+    }
+  }
+
+  // ── TRIGGER IMAGE GENERATION ──────────────────────────────────────────────
+  async function triggerImageGeneration() {
+    const token = getToken();
+    if (!token) { document.getElementById("tokenBanner").classList.remove("hidden"); showToast("PAT token required.", "error"); return; }
+    if (!imgSelected.size) { showToast("Select at least one post.", "info"); return; }
+    if (!confirm(`Generate images for ${imgSelected.size} post(s)? This will run a GitHub Actions workflow (~2-3 min).`)) return;
+
+    const titles = Array.from(imgSelected).join("||");
+    document.getElementById("btnCreateImages").disabled = true;
+    showToast(`🎨 Triggering image generation for ${imgSelected.size} post(s)...`, "info");
+
+    try {
+      const res = await fetch(
+        `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/actions/workflows/${WORKFLOW_IMG}/dispatches`,
+        { method:"POST", headers:{ "Accept":"application/vnd.github.v3+json","Authorization":`Bearer ${token}`,"Content-Type":"application/json" },
+          body: JSON.stringify({ ref:"main", inputs:{ titles } }) }
+      );
+      if (res.status === 204) {
+        showToast(`✅ Image generation started for ${imgSelected.size} post(s)!`, "success");
+        imgSelected.clear(); updateBar(); renderPosts();
+        startWatching(WORKFLOW_IMG, `Generating images (${imgSelected.size || "batch"})`);
+      } else if (res.status === 401) {
+        showToast("❌ Invalid token.", "error"); sessionStorage.removeItem("gh_pat");
         document.getElementById("tokenBanner").classList.remove("hidden");
       } else {
         const body = await res.text();
         showToast(`❌ GitHub error ${res.status}: ${body}`, "error");
       }
-    } catch (e) {
-      showToast(`❌ Network error: ${e.message}`, "error");
-    } finally {
-      document.getElementById("btnSubmit").disabled   = false;
-      document.getElementById("btnClearAll").disabled = false;
-    }
+    } catch(e) { showToast(`❌ Network: ${e.message}`, "error"); }
+    finally { document.getElementById("btnCreateImages").disabled = false; }
+  }
+
+  // ── REJECT BATCH ACTIONS ──────────────────────────────────────────────────
+  async function submitRejectBatch(action) {
+    const token = getToken();
+    if (!token) { document.getElementById("tokenBanner").classList.remove("hidden"); return; }
+    if (!rejectSelected.size) return;
+    const label = action === "redo" ? "reset to pending" : "permanently trash";
+    if (!confirm(`${label.charAt(0).toUpperCase()+label.slice(1)} ${rejectSelected.size} post(s)?`)) return;
+
+    const newStatus = action === "redo" ? "pending" : "rejected"; // trash stays rejected; redo goes back to pending
+    const changesStr = Array.from(rejectSelected).map(t => `${t}::${newStatus}`).join("||");
+
+    showToast(`Processing ${rejectSelected.size} post(s)...`, "info");
+    try {
+      const res = await fetch(
+        `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/actions/workflows/${WORKFLOW_STATUS}/dispatches`,
+        { method:"POST", headers:{ "Accept":"application/vnd.github.v3+json","Authorization":`Bearer ${token}`,"Content-Type":"application/json" },
+          body: JSON.stringify({ ref:"main", inputs:{ changes: changesStr } }) }
+      );
+      if (res.status === 204) {
+        showToast(`✅ Done! Watching workflow...`, "success");
+        rejectSelected.clear(); updateBar(); renderPosts();
+        startWatching(WORKFLOW_STATUS, `Batch ${action}`);
+      } else {
+        showToast(`❌ GitHub error ${res.status}`, "error");
+      }
+    } catch(e) { showToast(`❌ ${e.message}`, "error"); }
   }
 
   // ── REFRESH ───────────────────────────────────────────────────────────────
@@ -498,8 +734,7 @@
   let toastTimer;
   function showToast(msg, type="info") {
     const el = document.getElementById("toast");
-    el.textContent = msg;
-    el.className = type;
+    el.textContent = msg; el.className = type;
     clearTimeout(toastTimer);
     toastTimer = setTimeout(() => { el.className=""; el.style.display="none"; }, 6000);
   }
