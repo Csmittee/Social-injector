@@ -24,8 +24,11 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Generate images and upload to Cloudinary
+      # No pip installs needed — script uses only stdlib + urllib
+
+      - name: Build prompts (Claude) → Generate images (Replicate) → Upload (Cloudinary)
         env:
+          ANTHROPIC_API_KEY:      ${{ secrets.ANTHROPIC_API_KEY }}
           REPLICATE_API_TOKEN:    ${{ secrets.REPLICATE_API_TOKEN }}
           CLOUDINARY_CLOUD_NAME:  ${{ secrets.CLOUDINARY_CLOUD_NAME }}
           CLOUDINARY_API_KEY:     ${{ secrets.CLOUDINARY_API_KEY }}
@@ -43,6 +46,6 @@ jobs:
           if git diff --cached --quiet; then
             echo "No changes to commit"
           else
-            git commit -m "feat: images generated and queued for posting"
+            git commit -m "feat: images generated → post_queue"
             git push origin main
           fi
