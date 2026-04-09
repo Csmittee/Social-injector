@@ -59,15 +59,6 @@ jobs:
           PLATFORMS:   ${{ github.event.inputs.platforms }}
         run: python scripts/ai_generator.py
 
-      - name: Commit new posts
+      - name: Commit new posts (race-safe)
         run: |
-          git config user.name  "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git pull --rebase origin main || true
-          git add social/posts.csv
-          if git diff --cached --quiet; then
-            echo "No changes to commit"
-          else
-            git commit -m "feat: [${{ github.event.inputs.business_id }}] AI generated ${{ github.event.inputs.count }} post(s)"
-            git push origin main
-          fi
+          bash scripts/safe_push.sh "feat: [${{ github.event.inputs.business_id }}] AI generated ${{ github.event.inputs.count }} post(s)"

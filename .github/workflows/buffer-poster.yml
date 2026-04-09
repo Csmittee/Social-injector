@@ -24,22 +24,13 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Send posts to Buffer
+      - name: Send posts to Buffer (FB + IG)
         env:
           BUFFER_API_KEY: ${{ secrets.BUFFER_API_KEY }}
         run: |
           python scripts/buffer_poster.py \
             --titles "${{ github.event.inputs.titles }}"
 
-      - name: Commit updated CSV (status -> posted)
+      - name: Commit updated CSV (race-safe)
         run: |
-          git config user.name  "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git pull --rebase origin main || true
-          git add social/posts.csv
-          if git diff --cached --quiet; then
-            echo "No changes to commit"
-          else
-            git commit -m "feat: posts sent to Buffer → posted"
-            git push origin main
-          fi
+          bash scripts/safe_push.sh "feat: posts sent to Buffer → posted"

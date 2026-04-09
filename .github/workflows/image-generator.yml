@@ -24,8 +24,6 @@ jobs:
         with:
           python-version: "3.11"
 
-      # No pip installs needed — script uses only stdlib + urllib
-
       - name: Build prompts (Claude) → Generate images (Replicate) → Upload (Cloudinary)
         env:
           ANTHROPIC_API_KEY:      ${{ secrets.ANTHROPIC_API_KEY }}
@@ -37,15 +35,6 @@ jobs:
           python scripts/image_generator.py \
             --titles "${{ github.event.inputs.titles }}"
 
-      - name: Commit updated CSV
+      - name: Commit updated CSV (race-safe)
         run: |
-          git config user.name  "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git pull --rebase origin main || true
-          git add social/posts.csv
-          if git diff --cached --quiet; then
-            echo "No changes to commit"
-          else
-            git commit -m "feat: images generated → post_queue"
-            git push origin main
-          fi
+          bash scripts/safe_push.sh "feat: images generated → post_queue"
