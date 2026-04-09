@@ -9,7 +9,6 @@
     body { font-family: 'Segoe UI', Arial, sans-serif; margin: 0; padding: 20px; background: #f0f2f5; }
     .container { max-width: 1200px; margin: auto; background: white; padding: 24px; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.1); }
 
-    /* TOKEN BANNER */
     #tokenBanner { background: #fff3cd; border: 1px solid #ffc107; border-radius: 8px; padding: 14px 18px; margin-bottom: 20px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
     #tokenBanner.hidden { display: none; }
     #tokenBanner label { font-weight: 600; color: #856404; white-space: nowrap; }
@@ -17,7 +16,6 @@
     #tokenSaveBtn { background: #ffc107; color: #333; border: none; border-radius: 6px; padding: 8px 16px; font-weight: bold; cursor: pointer; }
     #tokenSaveBtn:hover { background: #e0a800; }
 
-    /* WORKFLOW BAR */
     #workflowBar { display: none; align-items: center; gap: 10px; border-radius: 8px; padding: 10px 16px; margin-bottom: 16px; font-size: 14px; font-weight: 600; }
     #workflowBar.running { display: flex; background: #e8f4fd; border: 1px solid #17a2b8; color: #0c6578; }
     #workflowBar.done    { display: flex; background: #d4edda; border: 1px solid #28a745; color: #155724; }
@@ -29,44 +27,36 @@
     h1 { text-align: center; margin: 0 0 16px; font-size: 26px; }
     .nav { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; }
 
-    /* STATS */
     .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 10px; margin: 20px 0; }
     .stat-card { background: #f8f9fa; padding: 12px; border-radius: 8px; text-align: center; border: 1px solid #e0e0e0; cursor: pointer; transition: all 0.15s; }
     .stat-card:hover { border-color: #007bff; background: #f0f7ff; }
     .stat-number { font-size: 1.8em; font-weight: bold; color: #333; }
     .stat-label { font-size: 11px; color: #666; margin-top: 3px; }
 
-    /* TABS */
     .tabs { display: flex; flex-wrap: wrap; gap: 6px; margin: 20px 0 0; border-bottom: 2px solid #ddd; }
     .tab { padding: 9px 16px; background: #f1f1f1; border-radius: 6px 6px 0 0; cursor: pointer; border: 1px solid #ddd; border-bottom: none; font-size: 14px; transition: background 0.15s; white-space: nowrap; }
     .tab:hover { background: #e0e0e0; }
-    .tab.active                        { background: #007bff; color: white; border-color: #007bff; }
-    .tab[data-status="post_queue"].active { background: #fd7e14; border-color: #fd7e14; }
-    .tab[data-status="rejected"].active   { background: #dc3545; border-color: #dc3545; }
-    .tab[data-status="posted"].active     { background: #6c757d; border-color: #6c757d; }
+    .tab.active                           { background: #007bff; color: white; border-color: #007bff; }
+    .tab[data-status="post_queue"].active  { background: #fd7e14; border-color: #fd7e14; }
+    .tab[data-status="rejected"].active    { background: #dc3545; border-color: #dc3545; }
+    .tab[data-status="posted"].active      { background: #6c757d; border-color: #6c757d; }
 
-    /* POSTS GRID */
     #postsContainer { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 18px; margin-top: 20px; }
 
-    /* POST CARD */
     .post-card { border: 2px solid #ddd; border-radius: 10px; padding: 16px; background: white; box-shadow: 0 1px 4px rgba(0,0,0,0.06); transition: border-color 0.2s, background 0.2s; position: relative; }
     .post-card h3 { margin: 0 0 8px; font-size: 15px; padding-right: 28px; line-height: 1.4; }
-    .post-card p { margin: 3px 0; font-size: 13px; color: #444; }
+    .post-card p  { margin: 3px 0; font-size: 13px; color: #444; }
     .post-caption { white-space: pre-wrap; background: #f9f9f9; border-radius: 6px; padding: 8px; font-size: 13px; color: #333; margin: 8px 0; max-height: 110px; overflow-y: auto; line-height: 1.5; }
-    .post-image { width: 100%; border-radius: 8px; margin: 8px 0; max-height: 180px; object-fit: cover; border: 1px solid #eee; }
-    .post-image-placeholder { width: 100%; height: 80px; border-radius: 8px; margin: 8px 0; background: #f5f5f5; border: 2px dashed #ddd; display: flex; align-items: center; justify-content: center; color: #bbb; font-size: 12px; }
+    .post-image   { width: 100%; border-radius: 8px; margin: 8px 0; max-height: 180px; object-fit: cover; border: 1px solid #eee; }
+    .post-image-placeholder { width: 100%; height: 70px; border-radius: 8px; margin: 8px 0; background: #f5f5f5; border: 2px dashed #ddd; display: flex; align-items: center; justify-content: center; color: #bbb; font-size: 12px; }
 
-    /* card state colours */
     .post-card.local-approved { border-color: #28a745; background: #f0fff4; }
     .post-card.local-rejected { border-color: #dc3545; background: #fff5f5; }
     .post-card.card-selected  { border-color: #fd7e14; background: #fff8f0; }
 
-    /* CHECKBOX top-right */
     .card-checkbox { position: absolute; top: 12px; right: 12px; width: 20px; height: 20px; cursor: pointer; accent-color: #fd7e14; }
-
     .undo-hint { font-size: 11px; color: #888; margin-top: 4px; font-style: italic; }
 
-    /* BADGES */
     .badge { display: inline-block; padding: 3px 10px; border-radius: 4px; font-size: 11px; font-weight: bold; text-transform: uppercase; margin: 6px 0; }
     .badge-pending    { background: #fff3cd; color: #856404; }
     .badge-approved   { background: #d4edda; color: #155724; }
@@ -74,7 +64,6 @@
     .badge-posted     { background: #cce5ff; color: #004085; }
     .badge-rejected   { background: #f8d7da; color: #721c24; }
 
-    /* INLINE BUTTONS */
     .btn { padding: 7px 13px; margin: 3px 3px 0 0; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 12px; transition: opacity 0.15s; }
     .btn:hover { opacity: 0.85; }
     .btn:disabled { opacity: 0.4; cursor: not-allowed; }
@@ -83,19 +72,19 @@
     .btn-ai      { background: #6f42c1; color: white; padding: 10px 22px; font-size: 15px; }
     .btn-refresh { background: #17a2b8; color: white; padding: 10px 22px; font-size: 15px; }
 
-    /* BOTTOM ACTION BAR */
+    /* BOTTOM BAR */
     #submitBar { position: fixed; bottom: 0; left: 0; right: 0; color: white; padding: 14px 24px; display: none; align-items: center; justify-content: space-between; gap: 16px; z-index: 1000; box-shadow: 0 -4px 20px rgba(0,0,0,0.3); flex-wrap: wrap; }
-    #submitBar.visible      { display: flex; }
-    #submitBar.mode-status  { background: #1a1a2e; }
-    #submitBar.mode-image   { background: #5a2d00; }
-    #submitBar.mode-reject  { background: #4a0a0a; }
-    #submitBar.mode-queue   { background: #003d1a; }
+    #submitBar.visible     { display: flex; }
+    #submitBar.mode-status { background: #1a1a2e; }
+    #submitBar.mode-image  { background: #5a2d00; }
+    #submitBar.mode-reject { background: #4a0a0a; }
+    #submitBar.mode-queue  { background: #003d1a; }
 
-    #submitBarLabel { font-size: 15px; font-weight: 600; flex: 1; min-width: 200px; }
+    #submitBarLabel { font-size: 15px; font-weight: 600; flex: 1; min-width: 180px; }
     #submitBarLabel span { background: #ffc107; color: #333; border-radius: 20px; padding: 2px 12px; margin: 0 6px; font-weight: bold; }
     #submitBarActions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 
-    .bar-btn { border: none; border-radius: 8px; padding: 10px 20px; font-size: 14px; font-weight: bold; cursor: pointer; white-space: nowrap; }
+    .bar-btn { border: none; border-radius: 8px; padding: 10px 18px; font-size: 14px; font-weight: bold; cursor: pointer; white-space: nowrap; }
     .bar-btn:disabled { opacity: 0.5; cursor: not-allowed; }
     .bar-btn-clear  { background: transparent; color: #aaa; border: 1px solid #555; }
     .bar-btn-clear:hover { color: white; border-color: #aaa; }
@@ -107,15 +96,14 @@
 
     body.has-bar { padding-bottom: 80px; }
 
-    /* SELECT ALL ROW */
     .select-all-row { display: flex; align-items: center; gap: 12px; margin: 12px 0 4px; font-size: 13px; color: #555; flex-wrap: wrap; }
     .select-all-row label { cursor: pointer; display: flex; align-items: center; gap: 6px; }
     #selectedCountLabel { color: #fd7e14; font-weight: 600; }
 
-    .loading { text-align: center; padding: 40px; color: #666; font-size: 16px; }
+    .loading   { text-align: center; padding: 40px; color: #666; font-size: 16px; }
     .error-msg { color: #dc3545; background: #f8d7da; border-radius: 6px; padding: 12px; margin: 10px 0; }
 
-    #toast { position: fixed; bottom: 88px; right: 24px; color: white; padding: 12px 20px; border-radius: 8px; font-size: 14px; display: none; z-index: 9999; max-width: 340px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+    #toast { position: fixed; bottom: 88px; right: 24px; color: white; padding: 12px 20px; border-radius: 8px; font-size: 14px; display: none; z-index: 9999; max-width: 360px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
     #toast.success { background: #28a745; display: block; }
     #toast.error   { background: #dc3545; display: block; }
     #toast.info    { background: #17a2b8; display: block; }
@@ -183,22 +171,18 @@
   <div id="postsContainer"><div class="loading">Loading posts...</div></div>
 </div>
 
-<!-- BOTTOM BAR — single bar, mode-switched by JS -->
+<!-- BOTTOM BAR -->
 <div id="submitBar">
   <div id="submitBarLabel">—</div>
   <div id="submitBarActions">
     <button class="bar-btn bar-btn-clear"   id="btnClear"        onclick="clearAllSelections()">✕ Clear</button>
-    <!-- pending tab -->
-    <button class="bar-btn bar-btn-green"   id="btnSubmitStatus" onclick="submitStatusChanges()" style="display:none">🚀 Submit Changes</button>
-    <!-- approved tab -->
-    <button class="bar-btn bar-btn-orange"  id="btnCreateImages" onclick="triggerImageGeneration()" style="display:none">🎨 Create Images</button>
-    <button class="bar-btn bar-btn-red"     id="btnApprReject"   onclick="submitApprovedReject()" style="display:none">❌ Reject Selected</button>
-    <!-- rejected tab -->
-    <button class="bar-btn bar-btn-blue"    id="btnBackPending"  onclick="submitRejectAction('pending')" style="display:none">🔄 Back to Pending</button>
-    <button class="bar-btn bar-btn-red"     id="btnTrash"        onclick="submitRejectAction('trash')"   style="display:none">🗑️ Delete Selected</button>
-    <!-- post_queue tab -->
-    <button class="bar-btn bar-btn-orange"  id="btnRegenImage"   onclick="submitQueueAction('regen')"   style="display:none">🔄 Redo Image</button>
-    <button class="bar-btn bar-btn-buffer"  id="btnSendBuffer"   onclick="submitQueueAction('buffer')"  style="display:none">📤 Send to Buffer</button>
+    <button class="bar-btn bar-btn-green"   id="btnSubmitStatus" onclick="submitStatusChanges()">🚀 Submit Changes</button>
+    <button class="bar-btn bar-btn-orange"  id="btnCreateImages" onclick="triggerImageGeneration()">🎨 Create Images</button>
+    <button class="bar-btn bar-btn-red"     id="btnApprReject"   onclick="submitApprovedReject()">❌ Reject Selected</button>
+    <button class="bar-btn bar-btn-blue"    id="btnBackPending"  onclick="submitRejectAction('pending')">🔄 Back to Pending</button>
+    <button class="bar-btn bar-btn-red"     id="btnTrash"        onclick="submitRejectAction('trash')">🗑️ Delete</button>
+    <button class="bar-btn bar-btn-orange"  id="btnRegenImage"   onclick="submitQueueAction('regen')">🔄 Redo Image</button>
+    <button class="bar-btn bar-btn-buffer"  id="btnSendBuffer"   onclick="submitQueueAction('buffer')">📤 Send to Buffer</button>
   </div>
 </div>
 
@@ -210,13 +194,12 @@
   const CSV_PATH        = "social/posts.csv";
   const WORKFLOW_STATUS = "update-status.yml";
   const WORKFLOW_IMG    = "image-generator.yml";
+  const WORKFLOW_BUFFER = "buffer-poster.yml";
 
   let allPosts      = [];
   let currentFilter = "pending";
-
-  // Selection sets per tab type
-  let localChanges  = {};   // pending tab:  title -> "approved"|"rejected"
-  let selected      = new Set(); // all other tabs: selected titles
+  let localChanges  = {};      // pending tab: title -> "approved"|"rejected"
+  let selected      = new Set(); // all other tabs
 
   // ── UTF-8 SAFE CSV FETCH ──────────────────────────────────────────────────
   async function fetchCSVText(token) {
@@ -226,9 +209,9 @@
         { headers: { "Authorization": `Bearer ${token}`, "Accept": "application/vnd.github.v3+json" } }
       );
       if (!res.ok) throw new Error(`GitHub API HTTP ${res.status}`);
-      const data = await res.json();
-      const b64  = data.content.replace(/\n/g, "");
-      const bin  = atob(b64);
+      const data  = await res.json();
+      const b64   = data.content.replace(/\n/g, "");
+      const bin   = atob(b64);
       const bytes = new Uint8Array(bin.length);
       for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
       return new TextDecoder("utf-8").decode(bytes);
@@ -260,7 +243,7 @@
         if (!headers) { headers = clean; }
         else if (clean.some(f => f !== "")) {
           const post = {};
-          headers.forEach((h,idx) => { post[h] = clean[idx]||""; });
+          headers.forEach((h,idx) => { post[h] = clean[idx] || ""; });
           if (post.title) posts.push(post);
         }
         fields = []; i++; continue;
@@ -273,7 +256,7 @@
         const clean = fields.map(f => f.replace(/^"|"$/g,"").trim());
         if (clean.some(f => f !== "")) {
           const post = {};
-          headers.forEach((h,idx) => { post[h] = clean[idx]||""; });
+          headers.forEach((h,idx) => { post[h] = clean[idx] || ""; });
           if (post.title) posts.push(post);
         }
       }
@@ -283,6 +266,7 @@
 
   // ── TOKEN ─────────────────────────────────────────────────────────────────
   function getToken() { return sessionStorage.getItem("gh_pat") || ""; }
+
   function saveToken() {
     const val = document.getElementById("tokenInput").value.trim();
     if (!val) { showToast("Please enter a token first.", "error"); return; }
@@ -291,6 +275,7 @@
     showToast("Token saved.", "success");
     refreshDashboard();
   }
+
   function checkTokenBanner() {
     if (getToken()) document.getElementById("tokenBanner").classList.add("hidden");
   }
@@ -300,16 +285,18 @@
 
   function startWatching(workflowFile, label) {
     stopWatching();
-    watchStart = Date.now();
+    watchStart   = Date.now();
     dispatchedAt = new Date(watchStart - 3000).toISOString();
-    const bar = document.getElementById("workflowBar");
-    const msg = document.getElementById("workflowMsg");
+    const bar  = document.getElementById("workflowBar");
+    const msg  = document.getElementById("workflowMsg");
     const spin = document.getElementById("workflowSpin");
-    const el  = document.getElementById("workflowElapsed");
+    const el   = document.getElementById("workflowElapsed");
     bar.className = "running";
     msg.textContent = `⚙️ ${label} — waiting for GitHub...`;
     spin.style.display = "inline-block";
-    elapsedTimer = setInterval(() => { el.textContent = `${Math.round((Date.now()-watchStart)/1000)}s`; }, 1000);
+    elapsedTimer = setInterval(() => {
+      el.textContent = `${Math.round((Date.now() - watchStart) / 1000)}s`;
+    }, 1000);
     setTimeout(() => {
       pollWorkflow(workflowFile, label, msg, spin, bar);
       watchTimer = setInterval(() => pollWorkflow(workflowFile, label, msg, spin, bar), 5000);
@@ -317,7 +304,8 @@
   }
 
   async function pollWorkflow(workflowFile, label, msg, spin, bar) {
-    const token = getToken(); if (!token) { stopWatching(); return; }
+    const token = getToken();
+    if (!token) { stopWatching(); return; }
     try {
       const res = await fetch(
         `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/actions/workflows/${workflowFile}/runs?per_page=5`,
@@ -325,30 +313,33 @@
       );
       if (!res.ok) return;
       const data = await res.json();
-      const run = (data.workflow_runs||[]).find(r => new Date(r.created_at) >= new Date(dispatchedAt));
+      const run  = (data.workflow_runs || []).find(r => new Date(r.created_at) >= new Date(dispatchedAt));
       if (!run) { msg.textContent = `⚙️ ${label} — queued...`; return; }
       msg.textContent = `⚙️ ${label} — ${run.status.replace("_"," ")}...`;
       if (run.status === "completed") {
         stopWatching();
         if (run.conclusion === "success") {
-          bar.className = "done"; spin.style.display = "none";
+          bar.className = "done";
+          spin.style.display = "none";
           msg.textContent = `✅ ${label} — done! Refreshing in 5s...`;
-          setTimeout(() => { bar.style.display="none"; bar.className=""; refreshDashboard(); }, 5000);
+          setTimeout(() => { bar.style.display = "none"; bar.className = ""; refreshDashboard(); }, 5000);
         } else {
-          bar.className = "failed"; spin.style.display = "none";
+          bar.className = "failed";
+          spin.style.display = "none";
           msg.textContent = `❌ ${label} failed (${run.conclusion}). Check GitHub Actions.`;
-          setTimeout(() => { bar.style.display="none"; bar.className=""; }, 10000);
+          setTimeout(() => { bar.style.display = "none"; bar.className = ""; }, 10000);
         }
       }
     } catch(e) {}
   }
 
   function stopWatching() {
-    clearInterval(watchTimer); clearInterval(elapsedTimer);
+    clearInterval(watchTimer);
+    clearInterval(elapsedTimer);
     watchTimer = elapsedTimer = null;
   }
 
-  // ── LOAD ──────────────────────────────────────────────────────────────────
+  // ── LOAD POSTS ────────────────────────────────────────────────────────────
   async function loadPosts() {
     try {
       const text = await fetchCSVText(getToken());
@@ -357,12 +348,12 @@
       renderPosts();
     } catch(e) {
       document.getElementById("postsContainer").innerHTML =
-        `<div class="error-msg">❌ ${e.message}<br><small>Check that <code>social/posts.csv</code> exists.</small></div>`;
+        `<div class="error-msg">❌ ${e.message}<br><small>Check <code>social/posts.csv</code> exists in repo.</small></div>`;
     }
   }
 
   // ── STATS ─────────────────────────────────────────────────────────────────
-  function norm(s) { return (s||"pending").toLowerCase().trim(); }
+  function norm(s) { return (s || "pending").toLowerCase().trim(); }
 
   function updateStats() {
     const cnt = s => allPosts.filter(p => norm(p.status) === s).length;
@@ -378,14 +369,14 @@
   function switchTab(status) {
     document.querySelectorAll(".tab").forEach(t => t.classList.toggle("active", t.dataset.status === status));
     currentFilter = status;
-    localChanges = {};
+    localChanges  = {};
     selected.clear();
     updateBar();
     renderPosts();
   }
   document.querySelectorAll(".tab").forEach(tab => tab.addEventListener("click", () => switchTab(tab.dataset.status)));
 
-  // ── SELECTION HELPERS ─────────────────────────────────────────────────────
+  // ── SELECTION ─────────────────────────────────────────────────────────────
   function toggleCard(title, checked) {
     if (checked) selected.add(title); else selected.delete(title);
     const card = document.querySelector(`.post-card[data-title="${CSS.escape(title)}"]`);
@@ -402,11 +393,11 @@
 
   function syncSelectAllCb() {
     const visible = filterPosts();
-    const cb = document.getElementById("selectAllCb");
-    if (!cb || !visible.length) return;
-    cb.checked = visible.every(p => selected.has(p.title));
-    cb.indeterminate = !cb.checked && visible.some(p => selected.has(p.title));
+    const cb  = document.getElementById("selectAllCb");
     const lbl = document.getElementById("selectedCountLabel");
+    if (!cb) return;
+    cb.checked       = visible.length > 0 && visible.every(p => selected.has(p.title));
+    cb.indeterminate = !cb.checked && visible.some(p => selected.has(p.title));
     if (lbl) lbl.textContent = selected.size > 0 ? `${selected.size} selected` : "";
   }
 
@@ -417,39 +408,39 @@
     renderPosts();
   }
 
-  // ── BOTTOM BAR LOGIC ──────────────────────────────────────────────────────
-  // Button IDs grouped by tab mode
-  const BAR_BUTTONS = ["btnSubmitStatus","btnCreateImages","btnApprReject","btnBackPending","btnTrash","btnRegenImage","btnSendBuffer"];
+  // ── BOTTOM BAR ────────────────────────────────────────────────────────────
+  const ALL_BAR_BTNS = ["btnSubmitStatus","btnCreateImages","btnApprReject","btnBackPending","btnTrash","btnRegenImage","btnSendBuffer"];
 
   function updateBar() {
-    const bar   = document.getElementById("submitBar");
-    const lbl   = document.getElementById("submitBarLabel");
-    const statusCount = Object.keys(localChanges).length;
-    const selCount    = selected.size;
+    const bar          = document.getElementById("submitBar");
+    const lbl          = document.getElementById("submitBarLabel");
+    const statusCount  = Object.keys(localChanges).length;
+    const selCount     = selected.size;
 
-    // Hide all action buttons first
-    BAR_BUTTONS.forEach(id => document.getElementById(id).style.display = "none");
+    ALL_BAR_BTNS.forEach(id => document.getElementById(id).style.display = "none");
 
-    let mode = null;
-    let labelHtml = "";
+    let mode = null, labelHtml = "";
 
     if (currentFilter === "pending" && statusCount > 0) {
       mode = "status";
-      labelHtml = `You have <span>${statusCount}</span> pending change(s)`;
+      labelHtml = `You have <span>${statusCount}</span> unsaved change(s)`;
       document.getElementById("btnSubmitStatus").style.display = "inline-block";
+
     } else if (currentFilter === "approved" && selCount > 0) {
       mode = "image";
-      labelHtml = `<span>${selCount}</span> approved post(s) selected`;
+      labelHtml = `<span>${selCount}</span> post(s) selected`;
       document.getElementById("btnCreateImages").style.display = "inline-block";
       document.getElementById("btnApprReject").style.display   = "inline-block";
+
     } else if (currentFilter === "rejected" && selCount > 0) {
       mode = "reject";
       labelHtml = `<span>${selCount}</span> rejected post(s) selected`;
       document.getElementById("btnBackPending").style.display = "inline-block";
       document.getElementById("btnTrash").style.display       = "inline-block";
+
     } else if (currentFilter === "post_queue" && selCount > 0) {
       mode = "queue";
-      labelHtml = `<span>${selCount}</span> queued post(s) selected`;
+      labelHtml = `<span>${selCount}</span> queued post(s) — send to Buffer (FB + IG) or redo image`;
       document.getElementById("btnRegenImage").style.display = "inline-block";
       document.getElementById("btnSendBuffer").style.display = "inline-block";
     }
@@ -459,9 +450,8 @@
       document.body.classList.remove("has-bar");
       return;
     }
-
-    bar.className   = `visible mode-${mode}`;
-    lbl.innerHTML   = labelHtml;
+    bar.className = `visible mode-${mode}`;
+    lbl.innerHTML = labelHtml;
     document.body.classList.add("has-bar");
   }
 
@@ -472,24 +462,23 @@
 
   function escHtml(str) {
     const d = document.createElement("div");
-    d.appendChild(document.createTextNode(str||""));
+    d.appendChild(document.createTextNode(str || ""));
     return d.innerHTML;
   }
-  function escAttr(str) { return String(str||"").replace(/"/g,"&quot;"); }
+  function escAttr(str) { return String(str || "").replace(/"/g, "&quot;"); }
 
   function renderPosts() {
-    const container = document.getElementById("postsContainer");
-    const filtered  = filterPosts();
-    const selRow    = document.getElementById("selectAllRow");
-
-    // Show select-all row for tabs that use checkboxes
+    const container  = document.getElementById("postsContainer");
+    const filtered   = filterPosts();
+    const selRow     = document.getElementById("selectAllRow");
     const hasCheckbox = ["approved","rejected","post_queue"].includes(currentFilter);
+
     selRow.style.display = hasCheckbox ? "flex" : "none";
     if (hasCheckbox) {
       document.getElementById("selectAllLabel").textContent =
-        currentFilter === "approved"   ? "Select all for image generation / reject" :
-        currentFilter === "rejected"   ? "Select all for bulk action" :
-        "Select all for queue action";
+        currentFilter === "approved"   ? "Select all" :
+        currentFilter === "rejected"   ? "Select all" :
+        "Select all";
       syncSelectAllCb();
     }
 
@@ -500,8 +489,8 @@
 
     container.innerHTML = "";
     filtered.forEach(post => {
-      const csvStatus   = norm(post.status);
-      const localStatus = localChanges[post.title];
+      const csvStatus    = norm(post.status);
+      const localStatus  = localChanges[post.title];
       const displayStatus = localStatus || csvStatus;
 
       const card = document.createElement("div");
@@ -510,12 +499,10 @@
         + (selected.has(post.title) ? " card-selected" : "");
       card.setAttribute("data-title", post.title);
 
-      // Image
       const imgHtml = post.image_urls
         ? `<img class="post-image" src="${escAttr(post.image_urls)}" alt="" loading="lazy" onerror="this.style.display='none'">`
         : (csvStatus !== "pending" ? `<div class="post-image-placeholder">🖼️ No image yet</div>` : "");
 
-      // Checkbox (approved / rejected / post_queue tabs)
       let checkboxHtml = "";
       if (hasCheckbox) {
         checkboxHtml = `<input type="checkbox" class="card-checkbox"
@@ -523,18 +510,17 @@
           onchange="toggleCard('${escAttr(post.title)}', this.checked)">`;
       }
 
-      // Inline action buttons (pending tab only)
       let inlineActions = "";
-      if (csvStatus === "pending" || localStatus) {
+      if (csvStatus === "pending") {
         const approveActive = localStatus === "approved";
         const rejectActive  = localStatus === "rejected";
         inlineActions = `
           <div style="margin-top:8px;">
-            <button class="btn btn-approve" style="${approveActive?'box-shadow:0 0 0 3px #28a74566;':''}"
+            <button class="btn btn-approve" style="${approveActive ? 'box-shadow:0 0 0 3px #28a74566;' : ''}"
               onclick="setPendingChange('${escAttr(post.title)}','approved')">
               ${approveActive ? "✅ Approved" : "✅ Approve"}
             </button>
-            <button class="btn btn-reject" style="${rejectActive?'box-shadow:0 0 0 3px #dc354566;':''}"
+            <button class="btn btn-reject" style="${rejectActive ? 'box-shadow:0 0 0 3px #dc354566;' : ''}"
               onclick="setPendingChange('${escAttr(post.title)}','rejected')">
               ${rejectActive ? "❌ Rejected" : "❌ Reject"}
             </button>
@@ -542,22 +528,21 @@
           </div>`;
       }
 
-      // Post queue status note
       let queueNote = "";
       if (csvStatus === "post_queue") {
         queueNote = `<div style="margin-top:6px;font-size:12px;color:#7d3a00;font-weight:600;">
-          🖼️ Image ready — select to Send to Buffer or Redo Image</div>`;
+          ✅ Image ready — select to send to Buffer (FB+IG) or redo image</div>`;
       }
 
       card.innerHTML = `
         ${checkboxHtml}
-        <h3>${escHtml(post.title||"Untitled")}</h3>
-        <p><strong>Platform:</strong> ${escHtml(post.platform||"—")}</p>
-        <p><strong>Date:</strong> ${escHtml(post.post_date||"—")}</p>
+        <h3>${escHtml(post.title || "Untitled")}</h3>
+        <p><strong>Platform:</strong> ${escHtml(post.platform || "—")}</p>
+        <p><strong>Date:</strong> ${escHtml(post.post_date || "—")}</p>
         ${imgHtml}
-        <div class="post-caption">${escHtml(post.caption||"")}</div>
+        <div class="post-caption">${escHtml(post.caption || "")}</div>
         ${post.link ? `<p><strong>Link:</strong> <a href="${escAttr(post.link)}" target="_blank" rel="noopener">${escHtml(post.link)}</a></p>` : ""}
-        <div><span class="badge badge-${displayStatus}">${displayStatus.toUpperCase()}${localStatus?" (unsaved)":""}</span></div>
+        <div><span class="badge badge-${displayStatus}">${displayStatus.toUpperCase()}${localStatus ? " (unsaved)" : ""}</span></div>
         ${inlineActions}
         ${queueNote}
       `;
@@ -567,7 +552,7 @@
     syncSelectAllCb();
   }
 
-  // ── PENDING TAB: approve / reject per card ────────────────────────────────
+  // ── PENDING: per-card approve/reject ─────────────────────────────────────
   function setPendingChange(title, newStatus) {
     const post     = allPosts.find(p => p.title === title);
     const original = norm(post ? post.status : "pending");
@@ -581,7 +566,7 @@
   }
 
   // ── DISPATCH HELPER ───────────────────────────────────────────────────────
-  async function dispatchWorkflow(workflowFile, inputs, watchLabel) {
+  async function dispatch(workflowFile, inputs, watchLabel) {
     const token = getToken();
     if (!token) {
       document.getElementById("tokenBanner").classList.remove("hidden");
@@ -592,7 +577,11 @@
       `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/actions/workflows/${workflowFile}/dispatches`,
       {
         method: "POST",
-        headers: { "Accept":"application/vnd.github.v3+json","Authorization":`Bearer ${token}`,"Content-Type":"application/json" },
+        headers: {
+          "Accept":        "application/vnd.github.v3+json",
+          "Authorization": `Bearer ${token}`,
+          "Content-Type":  "application/json"
+        },
         body: JSON.stringify({ ref: "main", inputs })
       }
     );
@@ -605,19 +594,20 @@
       sessionStorage.removeItem("gh_pat");
       document.getElementById("tokenBanner").classList.remove("hidden");
     } else {
-      showToast(`❌ GitHub error ${res.status}`, "error");
+      const body = await res.text();
+      showToast(`❌ GitHub error ${res.status}: ${body}`, "error");
     }
     return false;
   }
 
-  // ── PENDING: submit approve/reject changes ────────────────────────────────
+  // ── PENDING: submit ───────────────────────────────────────────────────────
   async function submitStatusChanges() {
     const count = Object.keys(localChanges).length;
     if (!count) return;
     if (!confirm(`Submit ${count} status change(s)?`)) return;
-    const changesStr = Object.entries(localChanges).map(([t,s])=>`${t}::${s}`).join("||");
+    const changesStr = Object.entries(localChanges).map(([t,s]) => `${t}::${s}`).join("||");
     showToast(`Submitting ${count} change(s)...`, "info");
-    const ok = await dispatchWorkflow(WORKFLOW_STATUS, { changes: changesStr }, `Updating ${count} post(s)`);
+    const ok = await dispatch(WORKFLOW_STATUS, { changes: changesStr }, `Updating ${count} post(s)`);
     if (ok) { localChanges = {}; updateBar(); renderPosts(); }
   }
 
@@ -627,46 +617,47 @@
     if (!confirm(`Generate images for ${selected.size} post(s)? (~2-3 min)`)) return;
     const titles = Array.from(selected).join("||");
     showToast(`🎨 Starting image generation for ${selected.size} post(s)...`, "info");
-    const ok = await dispatchWorkflow(WORKFLOW_IMG, { titles }, `Generating ${selected.size} image(s)`);
+    const ok = await dispatch(WORKFLOW_IMG, { titles }, `Generating ${selected.size} image(s)`);
     if (ok) { selected.clear(); updateBar(); renderPosts(); }
   }
 
-  // ── APPROVED: reject selected directly ───────────────────────────────────
+  // ── APPROVED: reject selected ─────────────────────────────────────────────
   async function submitApprovedReject() {
     if (!selected.size) return;
     if (!confirm(`Reject ${selected.size} approved post(s)?`)) return;
-    const changesStr = Array.from(selected).map(t=>`${t}::rejected`).join("||");
+    const changesStr = Array.from(selected).map(t => `${t}::rejected`).join("||");
     showToast(`Rejecting ${selected.size} post(s)...`, "info");
-    const ok = await dispatchWorkflow(WORKFLOW_STATUS, { changes: changesStr }, `Rejecting ${selected.size} post(s)`);
+    const ok = await dispatch(WORKFLOW_STATUS, { changes: changesStr }, `Rejecting ${selected.size} post(s)`);
     if (ok) { selected.clear(); updateBar(); renderPosts(); }
   }
 
-  // ── REJECTED: back to pending OR trash ───────────────────────────────────
+  // ── REJECTED: back to pending or trash ───────────────────────────────────
   async function submitRejectAction(action) {
     if (!selected.size) return;
-    const label = action === "pending" ? "reset to pending" : "delete";
-    if (!confirm(`${label.charAt(0).toUpperCase()+label.slice(1)} ${selected.size} post(s)?`)) return;
-    // "trash" keeps status as rejected (no real delete since CSV-based); "pending" resets
     const newStatus = action === "pending" ? "pending" : "rejected";
-    const changesStr = Array.from(selected).map(t=>`${t}::${newStatus}`).join("||");
-    const ok = await dispatchWorkflow(WORKFLOW_STATUS, { changes: changesStr }, `Batch ${action}`);
+    const label     = action === "pending" ? "Reset to pending" : "Delete";
+    if (!confirm(`${label} ${selected.size} post(s)?`)) return;
+    const changesStr = Array.from(selected).map(t => `${t}::${newStatus}`).join("||");
+    const ok = await dispatch(WORKFLOW_STATUS, { changes: changesStr }, `Batch ${action}`);
     if (ok) { selected.clear(); updateBar(); renderPosts(); }
   }
 
-  // ── POST QUEUE: redo image (back to approved) OR send to Buffer ───────────
+  // ── POST QUEUE: redo image or send to Buffer ──────────────────────────────
   async function submitQueueAction(action) {
     if (!selected.size) return;
+
     if (action === "regen") {
-      if (!confirm(`Send ${selected.size} post(s) back to Approved so you can regenerate images?`)) return;
-      const changesStr = Array.from(selected).map(t=>`${t}::approved`).join("||");
-      // Also clear image_urls — handled by a separate clear step via update_status
-      // For now: reset to approved so image gen can re-run (image_generator.py overwrites image_urls)
-      const ok = await dispatchWorkflow(WORKFLOW_STATUS, { changes: changesStr }, `Resetting ${selected.size} post(s) for redo`);
+      if (!confirm(`Send ${selected.size} post(s) back to Approved to regenerate images?`)) return;
+      const changesStr = Array.from(selected).map(t => `${t}::approved`).join("||");
+      const ok = await dispatch(WORKFLOW_STATUS, { changes: changesStr }, `Resetting ${selected.size} post(s) for image redo`);
       if (ok) { selected.clear(); updateBar(); renderPosts(); }
+
     } else if (action === "buffer") {
-      if (!confirm(`Send ${selected.size} post(s) to Buffer for scheduling?`)) return;
-      showToast("📤 Buffer posting not yet configured — add BUFFER_API_KEY to secrets first.", "info");
-      // TODO: call buffer-poster.yml when ready
+      if (!confirm(`Send ${selected.size} post(s) to Buffer? They will be scheduled to Facebook + Instagram.`)) return;
+      const titles = Array.from(selected).join("||");
+      showToast(`📤 Sending ${selected.size} post(s) to Buffer...`, "info");
+      const ok = await dispatch(WORKFLOW_BUFFER, { titles }, `Posting ${selected.size} to Buffer`);
+      if (ok) { selected.clear(); updateBar(); renderPosts(); }
     }
   }
 
@@ -678,11 +669,12 @@
 
   // ── TOAST ─────────────────────────────────────────────────────────────────
   let toastTimer;
-  function showToast(msg, type="info") {
+  function showToast(msg, type = "info") {
     const el = document.getElementById("toast");
-    el.textContent = msg; el.className = type;
+    el.textContent = msg;
+    el.className   = type;
     clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => { el.className=""; el.style.display="none"; }, 6000);
+    toastTimer = setTimeout(() => { el.className = ""; el.style.display = "none"; }, 6000);
   }
 
   // ── INIT ──────────────────────────────────────────────────────────────────
