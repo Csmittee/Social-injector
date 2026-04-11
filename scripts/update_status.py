@@ -1,7 +1,13 @@
 #!/usr/bin/env python3
 """
 update_status.py
-Updates status of ONE OR MORE posts in social/posts.csv in a single run.
+Updates status OR permanently deletes posts in social/posts.csv.
+
+Accepts --changes in format:
+  "Title 1::approved||Title 2::rejected||Title 3::delete"
+
+Special action "delete" removes the row entirely from the CSV.
+All other values are treated as status updates.
 """
 
 import argparse
@@ -11,12 +17,14 @@ import sys
 import codecs
 
 CSV_PATH       = "social/posts.csv"
-VALID_STATUSES = {"pending", "approved", "rejected", "posted"}
+VALID_STATUSES = {"pending", "approved", "rejected", "posted", "post_queue"}
+DELETE_ACTION  = "delete"
 
-# Force UTF-8 output
-sys.stdout = codecs.getwriter("utf-8")(sys.stdout.buffer)
+sys.stdout = codecs.getwriter("utf-8")(sys.stdout.buffer, errors="replace")
+sys.stderr = codecs.getwriter("utf-8")(sys.stderr.buffer, errors="replace")
 
-def update_statuses(changes: dict) -> None:
+
+def process_changes(changes: dict) -> None:
     if not os.path.exists(CSV_PATH):
         print(f"ERROR: {CSV_PATH} not found.", file=sys.stderr)
         sys.exit(1)
@@ -30,73 +38,90 @@ def update_statuses(changes: dict) -> None:
         rows = list(reader)
 
     if "title" not in fieldnames or "status" not in fieldnames:
-        print(f"ERROR: CSV must have 'title' and 'status' columns.", file=sys.stderr)
+        print("ERROR: CSV must have 'title' and 'status' columns.", file=sys.stderr)
         sys.exit(1)
 
-    updated   = []
-    not_found = []
-    pending_changes = dict(changes)
+    to_delete   = {title for title, action in changes.items() if action == DELETE_ACTION}
+    to_update   = {title: action for title, action in changes.items() if action != DELETE_ACTION}
+
+    kept_rows   = []
+    updated     = []
+    deleted     = []
+    not_found   = set(changes.keys())
 
     for row in rows:
         title = row.get("title", "").strip()
-        if title in pending_changes:
-            new_status = pending_changes[title]
-            old_status = row["status"].strip()
+
+        if title in to_delete:
+            deleted.append(title)
+            not_found.discard(title)
+            # Row is NOT appended to kept_rows → permanently removed
+            continue
+
+        if title in to_update:
+            new_status = to_update[title]
+            old_status = row.get("status", "").strip()
             if old_status != new_status:
                 row["status"] = new_status
-                updated.append(f"  '{title}'  {old_status} -> {new_status}")
+                updated.append(f"  '{title}'  {old_status} → {new_status}")
             else:
                 updated.append(f"  '{title}'  already {new_status} (no change)")
-            del pending_changes[title]
+            not_found.discard(title)
 
-    not_found = list(pending_changes.keys())
+        kept_rows.append(row)
 
-    print(f"Processing {len(changes)} status change(s):")
-    for u in updated:
-        print(u)
+    # Summary
+    print(f"Processing {len(changes)} change(s):")
+    if updated:
+        print("  Status updates:")
+        for u in updated:
+            print(u)
+    if deleted:
+        print(f"  Permanently deleted {len(deleted)} row(s):")
+        for d in deleted:
+            print(f"    - '{d}'")
     if not_found:
         print(f"\nWARNING: {len(not_found)} title(s) not found in CSV:")
         for t in not_found:
             print(f"  - '{t}'")
 
-    if not updated and not_found:
-        print("ERROR: No posts were updated.", file=sys.stderr)
-        sys.exit(1)
+    if not updated and not deleted:
+        print("WARNING: No posts were changed.", file=sys.stderr)
+        # Don't exit 1 — not_found shouldn't crash the workflow
 
-    # Write back with strict UTF-8
+    # Write back
     with open(CSV_PATH, "w", encoding="utf-8", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=fieldnames, quoting=csv.QUOTE_MINIMAL)
         writer.writeheader()
-        writer.writerows(rows)
+        writer.writerows(kept_rows)
 
-    print(f"\nCSV saved: {CSV_PATH} ({len(updated)} update(s))")
+    print(f"\nCSV saved: {len(updated)} update(s), {len(deleted)} deletion(s). "
+          f"{len(kept_rows)} rows remaining.")
 
 
 def parse_changes(changes_str: str) -> dict:
     changes = {}
-    pairs = changes_str.split("||")
-    for pair in pairs:
+    for pair in changes_str.split("||"):
         pair = pair.strip()
         if "::" not in pair:
             print(f"WARNING: Skipping malformed pair: '{pair}'", file=sys.stderr)
             continue
         idx    = pair.rfind("::")
         title  = pair[:idx].strip()
-        status = pair[idx+2:].strip().lower()
+        action = pair[idx+2:].strip().lower()
         if not title:
             continue
-        if status not in VALID_STATUSES:
-            print(f"WARNING: Invalid status '{status}' for '{title}' — skipping.", file=sys.stderr)
+        if action != DELETE_ACTION and action not in VALID_STATUSES:
+            print(f"WARNING: Invalid action '{action}' for '{title}' — skipping.", file=sys.stderr)
             continue
-        changes[title] = status
-
+        changes[title] = action
     return changes
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--changes", required=True,
-        help='Format: "Title 1::approved||Title 2::rejected||Title 3::approved"')
+        help='Format: "Title 1::approved||Title 2::delete||Title 3::rejected"')
     args    = parser.parse_args()
     changes = parse_changes(args.changes)
 
@@ -105,8 +130,8 @@ if __name__ == "__main__":
         sys.exit(1)
 
     print(f"Parsed {len(changes)} change(s):")
-    for t, s in changes.items():
-        print(f"  '{t}' -> {s}")
+    for t, a in changes.items():
+        print(f"  '{t}' → {a}")
     print()
 
-    update_statuses(changes)
+    process_changes(changes)

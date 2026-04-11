@@ -247,7 +247,12 @@ def main():
     updated = []
     errors  = []
 
-    for title in titles:
+    for idx, title in enumerate(titles):
+        # Replicate rate-limit: wait between successive image generations
+        if idx > 0:
+            print(f"\n  ⏳ Waiting 15s before next image (Replicate rate limit)...")
+            time.sleep(15)
+
         row = next((r for r in rows if r.get("title", "").strip() == title), None)
         if not row:
             print(f"WARNING: '{title}' not found in CSV — skipping")
