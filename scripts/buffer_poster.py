@@ -20,12 +20,9 @@ import os
 import sys
 import urllib.error
 import urllib.request
-from datetime import datetime, timedelta
 
 CSV_PATH   = "social/posts.csv"
 BUFFER_API = "https://api.buffer.com"
-LOCAL_TZ_OFFSET = timedelta(hours=7)   # Thailand UTC+7
-
 sys.stdout = codecs.getwriter("utf-8")(sys.stdout.buffer, errors="replace")
 sys.stderr = codecs.getwriter("utf-8")(sys.stderr.buffer, errors="replace")
 
@@ -101,36 +98,27 @@ def get_channels(org_id: str, api_key: str) -> list:
 
 
 # ── STEP 3: CREATE A BUFFER POST ──────────────────────────────────────────
-def to_utc_iso(post_date: str):
-    """Convert Thai local time 'YYYY-MM-DD HH:MM' → UTC ISO 8601. None if past or invalid."""
-    if not post_date or not post_date.strip():
-        return None
-    try:
-        local_dt = datetime.strptime(post_date.strip(), "%Y-%m-%d %H:%M")
-        utc_dt   = local_dt - LOCAL_TZ_OFFSET
-        if utc_dt < datetime.utcnow():
-            print(f"    ⚠️  post_date {post_date} is in the past — adding to queue instead")
-            return None
-        return utc_dt.strftime("%Y-%m-%dT%H:%M:%S.000Z")
-    except ValueError:
-        return None
 
 
-def create_buffer_post(caption: str, image_url: str, post_date: str,
-                       channel_id: str, api_key: str) -> dict:
-    due_at = to_utc_iso(post_date)
-    mode   = "customScheduled" if due_at else "addToQueue"
-
+def create_buffer_post(caption: str, image_url: str,
+                       channel_id: str, service: str, api_key: str) -> dict:
+    """
+    Always uses addToQueue mode — lets Buffer's own schedule (max 3/day etc.)
+    control when posts go out. This respects whatever posting schedule you've
+    configured in Buffer without needing to manage times in the CSV.
+    """
     input_data = {
         "text":           caption,
         "channelId":      channel_id,
         "schedulingType": "automatic",
-        "mode":           mode,
+        "mode":           "addToQueue",
     }
-    if due_at:
-        input_data["dueAt"] = due_at
     if image_url:
         input_data["assets"] = {"images": [{"url": image_url}]}
+
+    # Facebook requires explicit mediaType = "post" (alternatives: story, reel)
+    if service.lower() == "facebook":
+        input_data["mediaType"] = "post"
 
     mutation = """
     mutation CreatePost($input: CreatePostInput!) {
@@ -244,11 +232,10 @@ def main():
 
         caption   = row.get("caption","").strip()
         image_url = row.get("image_urls","").strip()
-        post_date = row.get("post_date","").strip()
 
         print(f"{'─'*60}")
         print(f"[{title}]")
-        print(f"  Schedule: {post_date}")
+        print(f"  Mode: addToQueue (respects your Buffer 3/day schedule)")
         print(f"  Image: {(image_url[:70]+'...') if len(image_url)>70 else image_url or '(none)'}")
 
         post_success = False
@@ -257,7 +244,7 @@ def main():
         for ch in fb_channels:
             label = f"Facebook / {ch.get('displayName') or ch.get('name','?')}"
             try:
-                result  = create_buffer_post(caption, image_url, post_date, ch["id"], api_key)
+                result  = create_buffer_post(caption, image_url, ch["id"], "facebook", api_key)
                 outcome = result.get("data", {}).get("createPost", {})
                 if "post" in outcome:
                     buf_id = outcome["post"]["id"]
@@ -275,7 +262,7 @@ def main():
         for ch in ig_channels:
             label = f"Instagram / {ch.get('displayName') or ch.get('name','?')}"
             try:
-                result  = create_buffer_post(caption, image_url, post_date, ch["id"], api_key)
+                result  = create_buffer_post(caption, image_url, ch["id"], "instagram", api_key)
                 outcome = result.get("data", {}).get("createPost", {})
                 if "post" in outcome:
                     buf_id = outcome["post"]["id"]
@@ -293,6 +280,10 @@ def main():
         if post_success:
             row["status"] = "posted"
             updated.append(title)
+            if post_errors:
+                print(f"  ⚠️  Posted to some channels but {len(post_errors)} channel(s) failed:")
+                for pe in post_errors:
+                    print(f"    - {pe}")
         else:
             errors.extend(post_errors)
 
