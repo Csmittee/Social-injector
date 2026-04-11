@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 """
 buffer_poster.py
-Sends post_queue posts to Buffer, posting to Facebook AND Instagram simultaneously.
-Uses Buffer's GraphQL API with Bearer token auth.
+Sends post_queue posts to Buffer using the correct GraphQL API schema.
 
-Fix: Added User-Agent header to prevent Cloudflare 403 error 1010.
+Correct flow (per Buffer docs):
+  1. account { organizations { id } }  → get org ID
+  2. channels(input: { organizationId }) { id, name, service } → get channels
+  3. createPost(input: { ... }) for each FB channel
 
 Called by .github/workflows/buffer-poster.yml
 Secret required: BUFFER_API_KEY  (from publish.buffer.com → Settings → API)
@@ -22,21 +24,18 @@ from datetime import datetime, timedelta
 
 CSV_PATH   = "social/posts.csv"
 BUFFER_API = "https://api.buffer.com"
-
-# Thailand UTC+7 — post_date in CSV is stored as local Thai time
-LOCAL_TZ_OFFSET = timedelta(hours=7)
+LOCAL_TZ_OFFSET = timedelta(hours=7)   # Thailand UTC+7
 
 sys.stdout = codecs.getwriter("utf-8")(sys.stdout.buffer, errors="replace")
 sys.stderr = codecs.getwriter("utf-8")(sys.stderr.buffer, errors="replace")
 
-# Required to pass Cloudflare WAF — without this Buffer returns 403 error 1010
 HEADERS = {
-    "Content-Type":  "application/json",
-    "User-Agent":    "social-injector/1.0 (github-actions; python-urllib)",
+    "Content-Type": "application/json",
+    "User-Agent":   "social-injector/1.0 (github-actions; python-urllib)",
 }
 
 
-# ── BUFFER GRAPHQL ────────────────────────────────────────────────────────
+# ── GRAPHQL HELPER ────────────────────────────────────────────────────────
 def graphql(query: str, variables: dict, api_key: str) -> dict:
     payload = json.dumps({"query": query, "variables": variables}).encode("utf-8")
     headers = {**HEADERS, "Authorization": f"Bearer {api_key}"}
@@ -49,42 +48,74 @@ def graphql(query: str, variables: dict, api_key: str) -> dict:
         raise RuntimeError(f"Buffer API HTTP {e.code}: {body}")
 
 
-def get_channels(api_key: str) -> list:
+# ── STEP 1: GET ORGANIZATION ID ───────────────────────────────────────────
+def get_organization_id(api_key: str) -> str:
+    """Fetches the first organization ID for the authenticated account."""
     query = """
-    query GetChannels {
-      channels {
-        id
-        service
-        name
-        serviceUsername
+    query GetOrganizations {
+      account {
+        organizations {
+          id
+          name
+        }
       }
     }
     """
     data   = graphql(query, {}, api_key)
     errors = data.get("errors")
     if errors:
-        raise RuntimeError(f"Buffer channels error: {errors}")
+        raise RuntimeError(f"Buffer org query error: {errors}")
+
+    orgs = data.get("data", {}).get("account", {}).get("organizations", [])
+    if not orgs:
+        raise RuntimeError("No organizations found in Buffer account.")
+
+    org_id = orgs[0]["id"]
+    org_name = orgs[0].get("name", "?")
+    print(f"  Organization: {org_name} (id: {org_id})")
+    return org_id
+
+
+# ── STEP 2: GET CHANNELS ──────────────────────────────────────────────────
+def get_channels(org_id: str, api_key: str) -> list:
+    """Fetches all channels for the given organization."""
+    query = """
+    query GetChannels($input: ChannelsInput!) {
+      channels(input: $input) {
+        id
+        name
+        displayName
+        service
+        avatar
+        isQueuePaused
+      }
+    }
+    """
+    variables = {"input": {"organizationId": org_id}}
+    data   = graphql(query, variables, api_key)
+    errors = data.get("errors")
+    if errors:
+        raise RuntimeError(f"Buffer channels query error: {errors}")
+
     return data.get("data", {}).get("channels", [])
 
 
-# ── SCHEDULE HELPER ───────────────────────────────────────────────────────
+# ── STEP 3: CREATE A BUFFER POST ──────────────────────────────────────────
 def to_utc_iso(post_date: str):
-    """Convert "YYYY-MM-DD HH:MM" Thai local time → UTC ISO 8601. Returns None on failure."""
+    """Convert Thai local time 'YYYY-MM-DD HH:MM' → UTC ISO 8601. None if past or invalid."""
     if not post_date or not post_date.strip():
         return None
     try:
         local_dt = datetime.strptime(post_date.strip(), "%Y-%m-%d %H:%M")
         utc_dt   = local_dt - LOCAL_TZ_OFFSET
-        # Only schedule in the future; if past, add to queue instead
         if utc_dt < datetime.utcnow():
-            print(f"  ⚠️  post_date {post_date} is in the past — will add to queue instead")
+            print(f"    ⚠️  post_date {post_date} is in the past — adding to queue instead")
             return None
         return utc_dt.strftime("%Y-%m-%dT%H:%M:%S.000Z")
     except ValueError:
         return None
 
 
-# ── CREATE ONE BUFFER POST ────────────────────────────────────────────────
 def create_buffer_post(caption: str, image_url: str, post_date: str,
                        channel_id: str, api_key: str) -> dict:
     due_at = to_utc_iso(post_date)
@@ -105,7 +136,12 @@ def create_buffer_post(caption: str, image_url: str, post_date: str,
     mutation CreatePost($input: CreatePostInput!) {
       createPost(input: $input) {
         ... on PostActionSuccess {
-          post { id text dueAt status }
+          post {
+            id
+            text
+            dueAt
+            status
+          }
         }
         ... on MutationError {
           message
@@ -152,34 +188,44 @@ def main():
         sys.exit(1)
 
     titles = [t.strip() for t in titles_raw.split("||") if t.strip()]
-    print(f"Sending {len(titles)} post(s) to Buffer (FB + IG simultaneously)...")
+    print(f"Sending {len(titles)} post(s) to Buffer...")
     print()
 
-    # Fetch connected channels
-    print("Fetching Buffer channels...")
+    # Step 1: get org ID
+    print("Step 1 — Fetching Buffer organization...")
     try:
-        channels = get_channels(api_key)
+        org_id = get_organization_id(api_key)
     except Exception as e:
-        print(f"ERROR fetching channels: {e}", file=sys.stderr)
+        print(f"ERROR: {e}", file=sys.stderr)
+        sys.exit(1)
+
+    # Step 2: get channels
+    print("Step 2 — Fetching connected channels...")
+    try:
+        channels = get_channels(org_id, api_key)
+    except Exception as e:
+        print(f"ERROR: {e}", file=sys.stderr)
         sys.exit(1)
 
     if not channels:
-        print("ERROR: No channels found in Buffer. Connect FB/IG at publish.buffer.com first.", file=sys.stderr)
+        print("ERROR: No channels found. Connect FB/IG at publish.buffer.com first.", file=sys.stderr)
         sys.exit(1)
 
-    print(f"Found {len(channels)} connected channel(s):")
+    print(f"  Found {len(channels)} channel(s):")
     for ch in channels:
-        print(f"  [{ch.get('service','?'):12}] {ch.get('serviceUsername','?')}  id={ch.get('id')}")
-    print()
+        paused = " [PAUSED]" if ch.get("isQueuePaused") else ""
+        print(f"    [{ch.get('service','?'):12}] {ch.get('displayName') or ch.get('name','?')}{paused}  id={ch.get('id')}")
 
     fb_channels = [ch for ch in channels if ch.get("service","").lower() == "facebook"]
     ig_channels = [ch for ch in channels if ch.get("service","").lower() == "instagram"]
 
     if not fb_channels:
-        print("WARNING: No Facebook channels connected in Buffer.")
+        print("  WARNING: No Facebook channels connected.")
     if not ig_channels:
-        print("NOTE: No Instagram channels connected — will post to Facebook only.")
+        print("  NOTE: No Instagram channels — posting to Facebook only.")
+    print()
 
+    # Step 3: post each title
     rows, fieldnames = load_csv()
     updated = []
     errors  = []
@@ -192,7 +238,7 @@ def main():
 
         status = row.get("status","").strip().lower()
         if status != "post_queue":
-            errors.append(f"Status '{status}' (not post_queue): {title}")
+            errors.append(f"Status '{status}' not post_queue: {title}")
             print(f"  SKIP '{title}' — not in post_queue")
             continue
 
@@ -203,21 +249,20 @@ def main():
         print(f"{'─'*60}")
         print(f"[{title}]")
         print(f"  Schedule: {post_date}")
-        print(f"  Image:    {(image_url[:70] + '...') if len(image_url) > 70 else image_url or '(none)'}")
+        print(f"  Image: {(image_url[:70]+'...') if len(image_url)>70 else image_url or '(none)'}")
 
         post_success = False
         post_errors  = []
 
-        # Post to all FB channels
         for ch in fb_channels:
-            label = f"Facebook/{ch.get('serviceUsername','?')}"
+            label = f"Facebook / {ch.get('displayName') or ch.get('name','?')}"
             try:
                 result  = create_buffer_post(caption, image_url, post_date, ch["id"], api_key)
                 outcome = result.get("data", {}).get("createPost", {})
                 if "post" in outcome:
                     buf_id = outcome["post"]["id"]
-                    sched  = outcome["post"].get("dueAt", "added to queue")
-                    print(f"  ✅ {label} → Buffer ID {buf_id} ({sched})")
+                    sched  = outcome["post"].get("dueAt") or "added to queue"
+                    print(f"  ✅ {label} → {buf_id} ({sched})")
                     post_success = True
                 else:
                     msg = outcome.get("message", str(result))
@@ -227,16 +272,15 @@ def main():
                 print(f"  ❌ {label} → {e}")
                 post_errors.append(f"{label}: {e}")
 
-        # Post to all IG channels (if connected)
         for ch in ig_channels:
-            label = f"Instagram/{ch.get('serviceUsername','?')}"
+            label = f"Instagram / {ch.get('displayName') or ch.get('name','?')}"
             try:
                 result  = create_buffer_post(caption, image_url, post_date, ch["id"], api_key)
                 outcome = result.get("data", {}).get("createPost", {})
                 if "post" in outcome:
                     buf_id = outcome["post"]["id"]
-                    sched  = outcome["post"].get("dueAt", "added to queue")
-                    print(f"  ✅ {label} → Buffer ID {buf_id} ({sched})")
+                    sched  = outcome["post"].get("dueAt") or "added to queue"
+                    print(f"  ✅ {label} → {buf_id} ({sched})")
                     post_success = True
                 else:
                     msg = outcome.get("message", str(result))
