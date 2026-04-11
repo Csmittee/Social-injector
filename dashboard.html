@@ -634,9 +634,9 @@
   // ── REJECTED: back to pending or trash ───────────────────────────────────
   async function submitRejectAction(action) {
     if (!selected.size) return;
-    const newStatus = action === "pending" ? "pending" : "rejected";
-    const label     = action === "pending" ? "Reset to pending" : "Delete";
-    if (!confirm(`${label} ${selected.size} post(s)?`)) return;
+    const newStatus = action === "pending" ? "pending" : "delete";
+    const label     = action === "pending" ? "Reset to pending" : "Permanently delete";
+    if (!confirm(`${label} ${selected.size} post(s)? ${action === "trash" ? "This cannot be undone." : ""}`)) return;
     const changesStr = Array.from(selected).map(t => `${t}::${newStatus}`).join("||");
     const ok = await dispatch(WORKFLOW_STATUS, { changes: changesStr }, `Batch ${action}`);
     if (ok) { selected.clear(); updateBar(); renderPosts(); }
