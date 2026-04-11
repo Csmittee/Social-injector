@@ -14,6 +14,7 @@ import anthropic
 import csv
 import json
 import os
+import re
 import sys
 from datetime import datetime, timedelta
 
@@ -62,6 +63,65 @@ def build_business_context(biz: dict) -> str:
     return "\n".join(lines)
 
 
+def clean_json_string(raw: str) -> str:
+    """
+    Robustly extract and clean JSON from Claude's response.
+    Handles:
+      - Markdown code fences (```json ... ```)
+      - Broken/replacement unicode chars (the ??? boxes)
+      - Literal newlines inside JSON string values
+    """
+    # Strip markdown fences
+    raw = raw.strip()
+    if "```" in raw:
+        raw = re.sub(r"```(?:json)?", "", raw).strip()
+
+    # Find the JSON array boundaries
+    start = raw.find("[")
+    end   = raw.rfind("]")
+    if start == -1 or end == -1 or end <= start:
+        return raw
+    raw = raw[start:end+1]
+
+    # Remove unicode replacement characters (U+FFFD and similar broken sequences)
+    raw = raw.replace("\ufffd", "")
+    # Remove other common broken unicode escape sequences that appear as literal \u + garbled chars
+    raw = re.sub(r'\\u[0-9a-fA-F]{0,3}[^0-9a-fA-F"\\,\]\}]', '', raw)
+
+    # Fix literal (unescaped) newlines INSIDE JSON string values.
+    # Strategy: walk char by char, track if we're inside a string,
+    # and replace bare \n/\r inside strings with \\n
+    result    = []
+    in_string = False
+    i         = 0
+    while i < len(raw):
+        ch = raw[i]
+        if ch == '\\' and in_string:
+            # Escaped sequence — pass both chars through unchanged
+            result.append(ch)
+            i += 1
+            if i < len(raw):
+                result.append(raw[i])
+            i += 1
+            continue
+        if ch == '"':
+            in_string = not in_string
+            result.append(ch)
+            i += 1
+            continue
+        if in_string and ch == '\n':
+            result.append('\\n')
+            i += 1
+            continue
+        if in_string and ch == '\r':
+            i += 1
+            continue
+        result.append(ch)
+        i += 1
+
+    return "".join(result)
+
+
 def generate_posts(prompt: str, count: int, platforms: list, biz: dict) -> list:
     client = anthropic.Anthropic()
 
@@ -71,7 +131,10 @@ def generate_posts(prompt: str, count: int, platforms: list, biz: dict) -> list:
 
     system = (
         "You are a professional social media content creator for Thai businesses. "
-        "Return ONLY a valid JSON array — no markdown, no code fences, no explanation."
+        "Return ONLY a valid JSON array — no markdown, no code fences, no explanation. "
+        "CRITICAL: All string values must use \\n for line breaks (escaped), never raw newlines. "
+        "Do not include any broken unicode or replacement characters. "
+        "Every double-quote inside a string value must be escaped as \\\"."
     )
 
     biz_block = f"--- Business Context ---\n{biz_context}\n---" if biz_context else ""
@@ -86,59 +149,74 @@ Rules:
 - Each post must be unique in tone: mix motivational, educational, story-based, promotional, question-based.
 - Vary emojis, hashtags, CTAs — never repeat the same ending.
 - Use the business language style and include the default hashtags naturally.
-- For "link": use the business main URL only when there is a strong CTA (book, register, buy, visit). Otherwise use "".
+- For "link": use the business main URL only when there is a strong CTA. Otherwise use "".
 - For "platform": use exactly one value per post matching the target platforms.
 - Spread post_date across the next 7 days. Format: "YYYY-MM-DD HH:MM"
   Available dates: {', '.join(date_examples)}
-- Title should be short and catchy (max 60 chars).
+- Title should be short and catchy (max 60 chars). No double-quotes in titles.
+- In caption, use \\n for line breaks — never raw newlines.
 
-Return ONLY this JSON array:
+Return ONLY this JSON array (no text before or after):
 [
   {{
     "title": "Short catchy title",
     "post_date": "2026-04-04 09:00",
     "platform": "Facebook",
-    "caption": "Full engaging caption with emojis and hashtags...",
+    "caption": "Line 1\\nLine 2\\nLine 3",
     "image_urls": "",
     "link": "",
     "status": "pending"
   }}
 ]"""
 
-    message = client.messages.create(
-        model="claude-sonnet-4-6",
-        max_tokens=4096,
-        system=system,
-        messages=[{"role": "user", "content": user}],
-    )
+    MAX_RETRIES = 3
+    last_error  = None
 
-    raw = message.content[0].text.strip()
+    for attempt in range(1, MAX_RETRIES + 1):
+        print(f"  Claude attempt {attempt}/{MAX_RETRIES}...")
+        message = client.messages.create(
+            model="claude-sonnet-4-6",
+            max_tokens=4096,
+            system=system,
+            messages=[{"role": "user", "content": user}],
+        )
 
-    if "```" in raw:
-        start = raw.find("[")
-        end   = raw.rfind("]") + 1
-        if start != -1 and end > start:
-            raw = raw[start:end]
+        raw     = message.content[0].text.strip()
+        cleaned = clean_json_string(raw)
 
-    try:
-        posts = json.loads(raw)
-        if not isinstance(posts, list):
-            raise ValueError("Response is not a JSON array")
-        return posts
-    except (json.JSONDecodeError, ValueError) as e:
-        print(f"ERROR parsing Claude response: {e}", file=sys.stderr)
-        print(f"Raw:\n{raw}", file=sys.stderr)
-        sys.exit(1)
+        try:
+            posts = json.loads(cleaned)
+            if not isinstance(posts, list):
+                raise ValueError("Response is not a JSON array")
+            if len(posts) == 0:
+                raise ValueError("Empty posts array returned")
+            print(f"  ✅ Parsed {len(posts)} post(s) successfully.")
+            return posts
+        except (json.JSONDecodeError, ValueError) as e:
+            last_error = e
+            print(f"  ⚠️  Parse attempt {attempt} failed: {e}", file=sys.stderr)
+            if attempt < MAX_RETRIES:
+                print("  Retrying with stricter instructions...", file=sys.stderr)
+                # On retry, add the failed output as context to help Claude self-correct
+                user += f"\n\nIMPORTANT: Your previous response caused a JSON parse error: {e}. Please fix it and return only clean valid JSON."
+
+    print(f"ERROR: All {MAX_RETRIES} parse attempts failed. Last error: {last_error}", file=sys.stderr)
+    print(f"Last raw response:\n{raw}", file=sys.stderr)
+    sys.exit(1)
 
 
 def append_posts(posts: list):
     rows = []
     for post in posts:
+        # Restore \\n back to real newlines for CSV storage (display correctly in dashboard)
+        caption = str(post.get("caption", "")).strip()
+        caption = caption.replace("\\n", "\n")
+
         row = {
             "title":      str(post.get("title", "Untitled")).strip()[:120],
             "post_date":  str(post.get("post_date", datetime.utcnow().strftime("%Y-%m-%d %H:%M"))).strip(),
             "platform":   str(post.get("platform", "Facebook")).strip(),
-            "caption":    str(post.get("caption", "")).strip(),
+            "caption":    caption,
             "image_urls": str(post.get("image_urls", "")).strip(),
             "link":       str(post.get("link", "")).strip(),
             "status":     "pending",
@@ -146,7 +224,7 @@ def append_posts(posts: list):
         rows.append(row)
 
     with open(CSV_PATH, "a", encoding="utf-8", newline="") as f:
-        writer = csv.DictWriter(f, fieldnames=FIELDNAMES, quoting=csv.QUOTE_MINIMAL)
+        writer = csv.DictWriter(f, fieldnames=FIELDNAMES, quoting=csv.QUOTE_ALL)
         writer.writerows(rows)
 
     print(f"Appended {len(rows)} post(s) to {CSV_PATH}")
