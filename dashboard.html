@@ -16,13 +16,27 @@
     #tokenSaveBtn { background: #ffc107; color: #333; border: none; border-radius: 6px; padding: 8px 16px; font-weight: bold; cursor: pointer; }
     #tokenSaveBtn:hover { background: #e0a800; }
 
-    #workflowBar { display: none; align-items: center; gap: 10px; border-radius: 8px; padding: 10px 16px; margin-bottom: 16px; font-size: 14px; font-weight: 600; }
-    #workflowBar.running { display: flex; background: #e8f4fd; border: 1px solid #17a2b8; color: #0c6578; }
-    #workflowBar.done    { display: flex; background: #d4edda; border: 1px solid #28a745; color: #155724; }
-    #workflowBar.failed  { display: flex; background: #f8d7da; border: 1px solid #dc3545; color: #721c24; }
-    .spin { display: inline-block; width: 16px; height: 16px; border: 3px solid rgba(23,162,184,0.3); border-top-color: #17a2b8; border-radius: 50%; animation: spin 0.8s linear infinite; flex-shrink: 0; }
+    /* ── PIPELINE STATUS PANEL ── */
+    #pipelinePanel { background: #f8f9fa; border: 1px solid #e0e0e0; border-radius: 10px; padding: 12px 16px; margin-bottom: 18px; }
+    #pipelinePanel h4 { margin: 0 0 10px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.6px; color: #999; font-weight: 700; }
+    .pipeline-rows { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 8px; }
+    .wf-row { display: flex; align-items: center; gap: 8px; background: white; border: 1px solid #e8e8e8; border-radius: 7px; padding: 8px 11px; transition: border-color 0.2s, background 0.2s; min-width: 0; }
+    .wf-row.wf-running { border-color: #17a2b8; background: #f0fbff; }
+    .wf-row.wf-done    { border-color: #28a745; background: #f3fff6; }
+    .wf-row.wf-failed  { border-color: #dc3545; background: #fff5f5; }
+    .wf-row.wf-idle    { border-color: #e8e8e8; background: white; }
+    .wf-icon { font-size: 15px; flex-shrink: 0; }
+    .wf-body { flex: 1; min-width: 0; }
+    .wf-name { font-size: 12px; font-weight: 700; color: #444; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .wf-status { font-size: 11px; color: #aaa; margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .wf-row.wf-running .wf-status { color: #0c6578; font-weight: 600; }
+    .wf-row.wf-done    .wf-status { color: #155724; }
+    .wf-row.wf-failed  .wf-status { color: #721c24; font-weight: 600; }
+    .wf-elapsed { font-size: 10px; color: #bbb; flex-shrink: 0; font-variant-numeric: tabular-nums; min-width: 28px; text-align: right; }
+    .wf-link { font-size: 10px; color: #007bff; text-decoration: none; flex-shrink: 0; opacity: 0.6; margin-left: 2px; }
+    .wf-link:hover { opacity: 1; }
+    .spin { display: inline-block; width: 12px; height: 12px; border: 2px solid rgba(23,162,184,0.25); border-top-color: #17a2b8; border-radius: 50%; animation: spin 0.8s linear infinite; flex-shrink: 0; }
     @keyframes spin { to { transform: rotate(360deg); } }
-    #workflowElapsed { margin-left: auto; font-size: 12px; font-weight: normal; opacity: 0.7; }
 
     h1 { text-align: center; margin: 0 0 16px; font-size: 26px; }
     .nav { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; }
@@ -118,10 +132,12 @@
     <button id="tokenSaveBtn" onclick="saveToken()">Save Token</button>
   </div>
 
-  <div id="workflowBar">
-    <div class="spin" id="workflowSpin"></div>
-    <span id="workflowMsg">Workflow running...</span>
-    <span id="workflowElapsed"></span>
+  <!-- PIPELINE STATUS PANEL — always visible, polls all 4 workflows -->
+  <div id="pipelinePanel">
+    <h4>⚙️ GitHub Actions Pipeline</h4>
+    <div class="pipeline-rows" id="pipelineRows">
+      <!-- rows injected by JS -->
+    </div>
   </div>
 
   <h1>📊 Social Injector Dashboard</h1>
@@ -280,63 +296,173 @@
     if (getToken()) document.getElementById("tokenBanner").classList.add("hidden");
   }
 
-  // ── WORKFLOW WATCHER ──────────────────────────────────────────────────────
-  let watchTimer = null, elapsedTimer = null, watchStart = null, dispatchedAt = null;
+  // ── PIPELINE STATUS ENGINE — watches all 4 workflows simultaneously ─────────
+  const WORKFLOWS = [
+    { file: "ai-generator.yml",    label: "AI Generator",    icon: "🤖" },
+    { file: "image-generator.yml", label: "Image Generator", icon: "🎨" },
+    { file: "update-status.yml",   label: "Update Status",   icon: "✏️"  },
+    { file: "buffer-poster.yml",   label: "Buffer Poster",   icon: "📤" },
+  ];
 
-  function startWatching(workflowFile, label) {
-    stopWatching();
-    watchStart   = Date.now();
-    dispatchedAt = new Date(watchStart - 3000).toISOString();
-    const bar  = document.getElementById("workflowBar");
-    const msg  = document.getElementById("workflowMsg");
-    const spin = document.getElementById("workflowSpin");
-    const el   = document.getElementById("workflowElapsed");
-    bar.className = "running";
-    msg.textContent = `⚙️ ${label} — waiting for GitHub...`;
-    spin.style.display = "inline-block";
-    elapsedTimer = setInterval(() => {
-      el.textContent = `${Math.round((Date.now() - watchStart) / 1000)}s`;
-    }, 1000);
-    setTimeout(() => {
-      pollWorkflow(workflowFile, label, msg, spin, bar);
-      watchTimer = setInterval(() => pollWorkflow(workflowFile, label, msg, spin, bar), 5000);
-    }, 6000);
+  // Per-workflow state: { status, conclusion, runId, startedAt, dispatchedAt, elapsed }
+  const wfState = {};
+  WORKFLOWS.forEach(w => {
+    wfState[w.file] = { phase: "idle", conclusion: null, runId: null, startedAt: null, dispatchedAt: null, elapsed: 0 };
+  });
+
+  let pipelineTimer  = null;   // polls GitHub every 6s
+  let elapsedTick    = null;   // updates elapsed counters every second
+  let pendingRefresh = false;  // set true when a run completes → refresh once
+
+  function startPipelinePolling() {
+    if (pipelineTimer) return; // already running
+    renderPipeline();
+    pipelineTimer = setInterval(pollAllWorkflows, 6000);
+    elapsedTick   = setInterval(tickElapsed, 1000);
+    // First poll immediately after a short delay for GitHub to register the run
+    setTimeout(pollAllWorkflows, 4000);
   }
 
-  async function pollWorkflow(workflowFile, label, msg, spin, bar) {
-    const token = getToken();
-    if (!token) { stopWatching(); return; }
-    try {
-      const res = await fetch(
-        `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/actions/workflows/${workflowFile}/runs?per_page=5`,
-        { headers: { "Authorization": `Bearer ${token}`, "Accept": "application/vnd.github.v3+json" } }
-      );
-      if (!res.ok) return;
-      const data = await res.json();
-      const run  = (data.workflow_runs || []).find(r => new Date(r.created_at) >= new Date(dispatchedAt));
-      if (!run) { msg.textContent = `⚙️ ${label} — queued...`; return; }
-      msg.textContent = `⚙️ ${label} — ${run.status.replace("_"," ")}...`;
-      if (run.status === "completed") {
-        stopWatching();
-        if (run.conclusion === "success") {
-          bar.className = "done";
-          spin.style.display = "none";
-          msg.textContent = `✅ ${label} — done! Refreshing in 5s...`;
-          setTimeout(() => { bar.style.display = "none"; bar.className = ""; refreshDashboard(); }, 5000);
-        } else {
-          bar.className = "failed";
-          spin.style.display = "none";
-          msg.textContent = `❌ ${label} failed (${run.conclusion}). Check GitHub Actions.`;
-          setTimeout(() => { bar.style.display = "none"; bar.className = ""; }, 10000);
-        }
+  function stopPipelinePolling() {
+    clearInterval(pipelineTimer);
+    clearInterval(elapsedTick);
+    pipelineTimer = elapsedTick = null;
+  }
+
+  function tickElapsed() {
+    WORKFLOWS.forEach(w => {
+      const s = wfState[w.file];
+      if (s.phase === "running" && s.startedAt) {
+        s.elapsed = Math.round((Date.now() - s.startedAt) / 1000);
       }
-    } catch(e) {}
+    });
+    renderPipeline();
   }
 
-  function stopWatching() {
-    clearInterval(watchTimer);
-    clearInterval(elapsedTimer);
-    watchTimer = elapsedTimer = null;
+  // Mark a workflow as just-dispatched so the panel shows it immediately
+  function markDispatched(workflowFile) {
+    wfState[workflowFile].phase       = "running";
+    wfState[workflowFile].dispatchedAt = new Date(Date.now() - 2000).toISOString();
+    wfState[workflowFile].startedAt   = Date.now();
+    wfState[workflowFile].elapsed     = 0;
+    wfState[workflowFile].conclusion  = null;
+    wfState[workflowFile].runId       = null;
+    renderPipeline();
+    startPipelinePolling();
+  }
+
+  async function pollAllWorkflows() {
+    const token = getToken();
+    if (!token) return;
+
+    let anyRunning = false;
+
+    await Promise.all(WORKFLOWS.map(async w => {
+      const s = wfState[w.file];
+      try {
+        const res = await fetch(
+          `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/actions/workflows/${w.file}/runs?per_page=3`,
+          { headers: { "Authorization": `Bearer ${token}`, "Accept": "application/vnd.github.v3+json" } }
+        );
+        if (!res.ok) return;
+        const data = await res.json();
+        const runs = data.workflow_runs || [];
+
+        // Find the run that matches our dispatch window (or the most recent one if recently dispatched)
+        let run = null;
+        if (s.dispatchedAt) {
+          run = runs.find(r => new Date(r.created_at) >= new Date(s.dispatchedAt));
+        }
+        if (!run && runs.length > 0) {
+          // Show the most recent run as context even if we didn't dispatch it
+          const recent = runs[0];
+          const ageMs  = Date.now() - new Date(recent.created_at).getTime();
+          if (ageMs < 10 * 60 * 1000) run = recent; // only if < 10 min old
+        }
+
+        if (!run) {
+          if (s.phase !== "idle") { /* keep current state until stale */ }
+          return;
+        }
+
+        s.runId = run.id;
+
+        if (run.status === "completed") {
+          if (s.phase === "running") {
+            // Just finished — trigger a CSV refresh once
+            pendingRefresh = true;
+          }
+          s.phase      = run.conclusion === "success" ? "done" : "failed";
+          s.conclusion = run.conclusion;
+          s.startedAt  = null;
+          // Clear dispatchedAt so we don't re-match this run on next poll
+          s.dispatchedAt = null;
+        } else {
+          // in_progress or queued
+          s.phase = "running";
+          if (!s.startedAt) s.startedAt = new Date(run.created_at).getTime();
+          anyRunning = true;
+        }
+      } catch(e) { /* silent — don't break other polls */ }
+    }));
+
+    renderPipeline();
+
+    // If something just finished and all are now idle/done/failed → refresh CSV once
+    if (pendingRefresh) {
+      const stillRunning = WORKFLOWS.some(w => wfState[w.file].phase === "running");
+      if (!stillRunning) {
+        pendingRefresh = false;
+        setTimeout(() => refreshDashboard(), 3000); // small delay for GitHub CDN
+      }
+    }
+
+    // Stop polling if nothing is running (save API calls)
+    const anyActive = WORKFLOWS.some(w => wfState[w.file].phase === "running");
+    if (!anyActive && pipelineTimer) {
+      stopPipelinePolling();
+    }
+  }
+
+  function renderPipeline() {
+    const container = document.getElementById("pipelineRows");
+    if (!container) return;
+
+    container.innerHTML = WORKFLOWS.map(w => {
+      const s      = wfState[w.file];
+      const cls    = `wf-row wf-${s.phase}`;
+      const spinEl = s.phase === "running" ? `<div class="spin"></div>` : "";
+      const logsUrl = s.runId
+        ? `https://github.com/${REPO_OWNER}/${REPO_NAME}/actions/runs/${s.runId}`
+        : `https://github.com/${REPO_OWNER}/${REPO_NAME}/actions/workflows/${w.file}`;
+
+      let statusText = "Idle";
+      if (s.phase === "running")      statusText = s.runId ? "Running…" : "Queued…";
+      else if (s.phase === "done")    statusText = "✅ Completed";
+      else if (s.phase === "failed")  statusText = `❌ Failed (${s.conclusion || "error"})`;
+
+      const elapsedTxt = s.phase === "running" && s.elapsed > 0
+        ? `${s.elapsed}s`
+        : (s.phase === "done" || s.phase === "failed") && s.elapsed > 0
+          ? `${s.elapsed}s` : "";
+
+      return `
+        <div class="${cls}">
+          <span class="wf-icon">${w.icon}</span>
+          ${spinEl}
+          <div class="wf-body">
+            <div class="wf-name">${w.label}</div>
+            <div class="wf-status">${statusText}</div>
+          </div>
+          <span class="wf-elapsed">${elapsedTxt}</span>
+          <a class="wf-link" href="${logsUrl}" target="_blank" rel="noopener" title="View logs">↗</a>
+        </div>`;
+    }).join("");
+  }
+
+  // Called by dispatch() after triggering a workflow — replaces old startWatching()
+  function startWatching(workflowFile) {
+    markDispatched(workflowFile);
   }
 
   // ── LOAD POSTS ────────────────────────────────────────────────────────────
@@ -566,7 +692,7 @@
   }
 
   // ── DISPATCH HELPER ───────────────────────────────────────────────────────
-  async function dispatch(workflowFile, inputs, watchLabel) {
+  async function dispatch(workflowFile, inputs) {
     const token = getToken();
     if (!token) {
       document.getElementById("tokenBanner").classList.remove("hidden");
@@ -586,7 +712,7 @@
       }
     );
     if (res.status === 204) {
-      startWatching(workflowFile, watchLabel);
+      startWatching(workflowFile);
       return true;
     }
     if (res.status === 401) {
@@ -607,7 +733,7 @@
     if (!confirm(`Submit ${count} status change(s)?`)) return;
     const changesStr = Object.entries(localChanges).map(([t,s]) => `${t}::${s}`).join("||");
     showToast(`Submitting ${count} change(s)...`, "info");
-    const ok = await dispatch(WORKFLOW_STATUS, { changes: changesStr }, `Updating ${count} post(s)`);
+    const ok = await dispatch(WORKFLOW_STATUS, { changes: changesStr });
     if (ok) { localChanges = {}; updateBar(); renderPosts(); }
   }
 
@@ -617,7 +743,7 @@
     if (!confirm(`Generate images for ${selected.size} post(s)? (~2-3 min)`)) return;
     const titles = Array.from(selected).join("||");
     showToast(`🎨 Starting image generation for ${selected.size} post(s)...`, "info");
-    const ok = await dispatch(WORKFLOW_IMG, { titles }, `Generating ${selected.size} image(s)`);
+    const ok = await dispatch(WORKFLOW_IMG, { titles });
     if (ok) { selected.clear(); updateBar(); renderPosts(); }
   }
 
@@ -627,36 +753,34 @@
     if (!confirm(`Reject ${selected.size} approved post(s)?`)) return;
     const changesStr = Array.from(selected).map(t => `${t}::rejected`).join("||");
     showToast(`Rejecting ${selected.size} post(s)...`, "info");
-    const ok = await dispatch(WORKFLOW_STATUS, { changes: changesStr }, `Rejecting ${selected.size} post(s)`);
+    const ok = await dispatch(WORKFLOW_STATUS, { changes: changesStr });
     if (ok) { selected.clear(); updateBar(); renderPosts(); }
   }
 
-  // ── REJECTED: back to pending or trash ───────────────────────────────────
+  // ── REJECTED: back to pending or permanently delete ───────────────────────
   async function submitRejectAction(action) {
     if (!selected.size) return;
     const newStatus = action === "pending" ? "pending" : "delete";
     const label     = action === "pending" ? "Reset to pending" : "Permanently delete";
-    if (!confirm(`${label} ${selected.size} post(s)? ${action === "trash" ? "This cannot be undone." : ""}`)) return;
+    if (!confirm(`${label} ${selected.size} post(s)?${action !== "pending" ? " This cannot be undone." : ""}`)) return;
     const changesStr = Array.from(selected).map(t => `${t}::${newStatus}`).join("||");
-    const ok = await dispatch(WORKFLOW_STATUS, { changes: changesStr }, `Batch ${action}`);
+    const ok = await dispatch(WORKFLOW_STATUS, { changes: changesStr });
     if (ok) { selected.clear(); updateBar(); renderPosts(); }
   }
 
   // ── POST QUEUE: redo image or send to Buffer ──────────────────────────────
   async function submitQueueAction(action) {
     if (!selected.size) return;
-
     if (action === "regen") {
       if (!confirm(`Send ${selected.size} post(s) back to Approved to regenerate images?`)) return;
       const changesStr = Array.from(selected).map(t => `${t}::approved`).join("||");
-      const ok = await dispatch(WORKFLOW_STATUS, { changes: changesStr }, `Resetting ${selected.size} post(s) for image redo`);
+      const ok = await dispatch(WORKFLOW_STATUS, { changes: changesStr });
       if (ok) { selected.clear(); updateBar(); renderPosts(); }
-
     } else if (action === "buffer") {
-      if (!confirm(`Send ${selected.size} post(s) to Buffer? They will be scheduled to Facebook + Instagram.`)) return;
+      if (!confirm(`Send ${selected.size} post(s) to Buffer? Will post to all connected Facebook channels.`)) return;
       const titles = Array.from(selected).join("||");
       showToast(`📤 Sending ${selected.size} post(s) to Buffer...`, "info");
-      const ok = await dispatch(WORKFLOW_BUFFER, { titles }, `Posting ${selected.size} to Buffer`);
+      const ok = await dispatch(WORKFLOW_BUFFER, { titles });
       if (ok) { selected.clear(); updateBar(); renderPosts(); }
     }
   }
@@ -680,7 +804,9 @@
   // ── INIT ──────────────────────────────────────────────────────────────────
   checkTokenBanner();
   loadPosts();
-  setInterval(loadPosts, 30000);
+  renderPipeline();                    // draw idle state immediately
+  startPipelinePolling();              // start polling GitHub right away
+  setInterval(loadPosts, 30000);       // refresh CSV every 30s
 </script>
 </body>
 </html>
