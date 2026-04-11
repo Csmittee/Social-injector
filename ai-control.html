@@ -147,14 +147,14 @@
   const WORKFLOW_AI = "ai-generator.yml";
 
   // ── TOKEN ──────────────────────────────────────────────────────────────
-  function getToken() { return sessionStorage.getItem("gh_pat") || ""; }
+  function getToken() { return localStorage.getItem("gh_pat") || ""; }
 
   function saveToken() {
     const val = document.getElementById("tokenInput").value.trim();
     if (!val) { showStatus("Please enter a token first.", "error"); return; }
-    sessionStorage.setItem("gh_pat", val);
+    localStorage.setItem("gh_pat", val);
     document.getElementById("tokenSection").classList.add("ok");
-    document.getElementById("tokenSection").querySelector("label").textContent = "✅ Token saved for this session";
+    document.getElementById("tokenSection").querySelector("label").textContent = "✅ Token saved (persists across tabs)";
     document.getElementById("tokenSection").style.display = "none";
     showStatus("Token saved.", "success");
   }
@@ -164,7 +164,7 @@
     if (t) {
       document.getElementById("tokenInput").value = t.slice(0, 8) + "••••••••";
       document.getElementById("tokenSection").classList.add("ok");
-      document.getElementById("tokenSection").querySelector("label").textContent = "✅ Token loaded from session";
+      document.getElementById("tokenSection").querySelector("label").textContent = "✅ Token loaded";
       document.getElementById("tokenSection").style.display = "none";
     }
   }
@@ -232,7 +232,7 @@
         document.getElementById("promptInput").value = "";
       } else if (res.status === 401) {
         showStatus("❌ Invalid or expired token. Please re-enter your GitHub PAT.", "error");
-        sessionStorage.removeItem("gh_pat");
+        localStorage.removeItem("gh_pat");
         document.getElementById("tokenSection").style.display = "block";
         document.getElementById("tokenSection").classList.remove("ok");
       } else if (res.status === 404) {

@@ -265,12 +265,12 @@
   }
 
   // ── TOKEN ─────────────────────────────────────────────────────────────────
-  function getToken() { return sessionStorage.getItem("gh_pat") || ""; }
+  function getToken() { return localStorage.getItem("gh_pat") || ""; }
 
   function saveToken() {
     const val = document.getElementById("tokenInput").value.trim();
     if (!val) { showToast("Please enter a token first.", "error"); return; }
-    sessionStorage.setItem("gh_pat", val);
+    localStorage.setItem("gh_pat", val);
     document.getElementById("tokenBanner").classList.add("hidden");
     showToast("Token saved.", "success");
     refreshDashboard();
@@ -591,7 +591,7 @@
     }
     if (res.status === 401) {
       showToast("❌ Invalid token.", "error");
-      sessionStorage.removeItem("gh_pat");
+      localStorage.removeItem("gh_pat");
       document.getElementById("tokenBanner").classList.remove("hidden");
     } else {
       const body = await res.text();
