@@ -245,15 +245,17 @@ def main():
             continue
 
         caption   = row.get("caption","").strip()
-        # Strip Cloudinary auto-transformation params — Buffer/Facebook needs a direct URL
-        # with explicit format, not content-negotiated q_auto/f_auto
         raw_url   = row.get("image_urls","").strip()
+        # Strip Cloudinary transformations for clean URL
         image_url = raw_url.replace("/q_auto/f_auto/", "/").replace("/q_auto,f_auto/", "/")
 
         print(f"{'─'*60}")
         print(f"[{title}]")
         print(f"  Mode: addToQueue (respects your Buffer 3/day schedule)")
-        print(f"  Image: {(image_url[:70]+'...') if len(image_url)>70 else image_url or '(none)'}")
+        if image_url:
+            print(f"  📎 Image URL (attach manually in Buffer):")
+            print(f"     {image_url}")
+        print(f"  NOTE: Posting text only — attach image manually in Buffer dashboard")
 
         post_success = False
         post_errors  = []
@@ -261,7 +263,7 @@ def main():
         for ch in fb_channels:
             label = f"Facebook / {ch.get('displayName') or ch.get('name','?')}"
             try:
-                result  = create_buffer_post(caption, image_url, ch["id"], api_key)
+                result  = create_buffer_post(caption, "", ch["id"], api_key)  # text only
                 outcome = result.get("data", {}).get("createPost", {})
                 if "post" in outcome:
                     buf_id = outcome["post"]["id"]
@@ -279,7 +281,7 @@ def main():
         for ch in ig_channels:
             label = f"Instagram / {ch.get('displayName') or ch.get('name','?')}"
             try:
-                result  = create_buffer_post(caption, image_url, ch["id"], api_key)
+                result  = create_buffer_post(caption, "", ch["id"], api_key)  # text only
                 outcome = result.get("data", {}).get("createPost", {})
                 if "post" in outcome:
                     buf_id = outcome["post"]["id"]
