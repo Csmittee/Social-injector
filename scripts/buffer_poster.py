@@ -111,40 +111,31 @@ def get_channels(org_id: str, api_key: str) -> list:
 def create_buffer_post(caption: str, image_url: str,
                        channel_id: str, api_key: str) -> dict:
     """
-    Always uses addToQueue. For Facebook image posts Buffer requires
-    schedulingType and mode as inline enum literals in the mutation string
-    (not as string variables), which is how their own docs show it.
-    We build the mutation as a raw string to avoid variable type coercion issues.
+    Always uses addToQueue. Image URL must be a direct Cloudinary URL
+    without q_auto/f_auto transformations so Buffer/Facebook can process it.
     """
-    # Escape caption for inline GraphQL string
-    safe_caption = caption.replace('\\', '\\\\').replace('"', '\\"').replace('\n', '\\n').replace('\r', '')
-
-    # Build assets block only if we have an image
-    assets_block = ""
+    input_data = {
+        "text":           caption,
+        "channelId":      channel_id,
+        "schedulingType": "automatic",
+        "mode":           "addToQueue",
+    }
     if image_url:
-        safe_url = image_url.replace('"', '\\"')
-        assets_block = f'assets: {{ images: [{{ url: "{safe_url}" }}] }}'
+        input_data["assets"] = {"images": [{"url": image_url}]}
 
-    mutation = f"""
-    mutation CreatePost {{
-      createPost(input: {{
-        text: "{safe_caption}",
-        channelId: "{channel_id}",
-        schedulingType: automatic,
-        mode: addToQueue,
-        {assets_block}
-      }}) {{
-        ... on PostActionSuccess {{
-          post {{ id text dueAt status }}
-        }}
-        ... on MutationError {{
+    mutation = """
+    mutation CreatePost($input: CreatePostInput!) {
+      createPost(input: $input) {
+        ... on PostActionSuccess {
+          post { id text dueAt status }
+        }
+        ... on MutationError {
           message
-        }}
-      }}
-    }}
+        }
+      }
+    }
     """
-    # Send as raw query with no variables
-    return graphql(mutation, {}, api_key)
+    return graphql(mutation, {"input": input_data}, api_key)
 
 
 # ── CSV HELPERS ────────────────────────────────────────────────────────────
@@ -254,7 +245,10 @@ def main():
             continue
 
         caption   = row.get("caption","").strip()
-        image_url = row.get("image_urls","").strip()
+        # Strip Cloudinary auto-transformation params — Buffer/Facebook needs a direct URL
+        # with explicit format, not content-negotiated q_auto/f_auto
+        raw_url   = row.get("image_urls","").strip()
+        image_url = raw_url.replace("/q_auto/f_auto/", "/").replace("/q_auto,f_auto/", "/")
 
         print(f"{'─'*60}")
         print(f"[{title}]")
