@@ -23,6 +23,11 @@ import urllib.request
 
 CSV_PATH   = "social/posts.csv"
 BUFFER_API = "https://api.buffer.com"
+
+# Channels to skip permanently (disconnected/low-priority)
+# Remove a name from this list once you've disconnected it in Buffer
+SKIP_CHANNELS = {"Outride Thailand"}
+
 sys.stdout = codecs.getwriter("utf-8")(sys.stdout.buffer, errors="replace")
 sys.stderr = codecs.getwriter("utf-8")(sys.stderr.buffer, errors="replace")
 
@@ -101,11 +106,9 @@ def get_channels(org_id: str, api_key: str) -> list:
 
 
 def create_buffer_post(caption: str, image_url: str,
-                       channel_id: str, service: str, api_key: str) -> dict:
+                       channel_id: str, api_key: str) -> dict:
     """
-    Always uses addToQueue mode — lets Buffer's own schedule (max 3/day etc.)
-    control when posts go out. This respects whatever posting schedule you've
-    configured in Buffer without needing to manage times in the CSV.
+    Always uses addToQueue — lets Buffer's schedule (max 3/day etc.) control timing.
     """
     input_data = {
         "text":           caption,
@@ -116,20 +119,11 @@ def create_buffer_post(caption: str, image_url: str,
     if image_url:
         input_data["assets"] = {"images": [{"url": image_url}]}
 
-    # Facebook requires explicit mediaType = "post" (alternatives: story, reel)
-    if service.lower() == "facebook":
-        input_data["mediaType"] = "post"
-
     mutation = """
     mutation CreatePost($input: CreatePostInput!) {
       createPost(input: $input) {
         ... on PostActionSuccess {
-          post {
-            id
-            text
-            dueAt
-            status
-          }
+          post { id text dueAt status }
         }
         ... on MutationError {
           message
@@ -204,13 +198,29 @@ def main():
         paused = " [PAUSED]" if ch.get("isQueuePaused") else ""
         print(f"    [{ch.get('service','?'):12}] {ch.get('displayName') or ch.get('name','?')}{paused}  id={ch.get('id')}")
 
-    fb_channels = [ch for ch in channels if ch.get("service","").lower() == "facebook"]
-    ig_channels = [ch for ch in channels if ch.get("service","").lower() == "instagram"]
+    fb_channels = [
+        ch for ch in channels
+        if ch.get("service","").lower() == "facebook"
+        and (ch.get("displayName") or ch.get("name","")) not in SKIP_CHANNELS
+    ]
+    ig_channels = [
+        ch for ch in channels
+        if ch.get("service","").lower() == "instagram"
+        and (ch.get("displayName") or ch.get("name","")) not in SKIP_CHANNELS
+    ]
 
+    skipped = [
+        ch.get("displayName") or ch.get("name","")
+        for ch in channels
+        if (ch.get("displayName") or ch.get("name","")) in SKIP_CHANNELS
+    ]
+    if skipped:
+        print(f"  Skipping {len(skipped)} channel(s) in SKIP_CHANNELS: {', '.join(skipped)}")
     if not fb_channels:
-        print("  WARNING: No Facebook channels connected.")
+        print("  WARNING: No active Facebook channels.")
     if not ig_channels:
         print("  NOTE: No Instagram channels — posting to Facebook only.")
+    print(f"  Active channels: {len(fb_channels)} FB + {len(ig_channels)} IG")
     print()
 
     # Step 3: post each title
@@ -244,7 +254,7 @@ def main():
         for ch in fb_channels:
             label = f"Facebook / {ch.get('displayName') or ch.get('name','?')}"
             try:
-                result  = create_buffer_post(caption, image_url, ch["id"], "facebook", api_key)
+                result  = create_buffer_post(caption, image_url, ch["id"], api_key)
                 outcome = result.get("data", {}).get("createPost", {})
                 if "post" in outcome:
                     buf_id = outcome["post"]["id"]
@@ -262,7 +272,7 @@ def main():
         for ch in ig_channels:
             label = f"Instagram / {ch.get('displayName') or ch.get('name','?')}"
             try:
-                result  = create_buffer_post(caption, image_url, ch["id"], "instagram", api_key)
+                result  = create_buffer_post(caption, image_url, ch["id"], api_key)
                 outcome = result.get("data", {}).get("createPost", {})
                 if "post" in outcome:
                     buf_id = outcome["post"]["id"]
